@@ -90,7 +90,7 @@ Tested on a 332-word proposal section with 2 rounds, full context, and all four 
 ## Execute
 
 ```bash
-python /Users/johannes/code/unisa/unisa-phd-proposal/scripts/writing-pipeline.py $ARGUMENTS
+python /Users/johannes/code/personal/afrikaans-aac/scripts/writing-pipeline.py $ARGUMENTS
 ```
 
 After the script completes, read the polished output file and present it to the user. Then remind them to do Step 6: targeted human review before the section is considered final.

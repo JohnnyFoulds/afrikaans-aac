@@ -106,7 +106,7 @@ Typical workflow:
 Tier-aware Arch C is the default — no extra flags needed. The script defaults to `--tier-aware --tier-architecture C` unless overridden.
 
 ```bash
-conda run -n claude-llm python /Users/johannes/code/unisa/unisa-phd-proposal/scripts/verify-claims.py $ARGUMENTS
+conda run -n claude-llm python /Users/johannes/code/personal/afrikaans-aac/scripts/verify-claims.py $ARGUMENTS
 ```
 
 After the script completes:

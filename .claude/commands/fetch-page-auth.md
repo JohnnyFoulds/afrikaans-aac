@@ -82,7 +82,7 @@ Read the raw HTML output. Find the selector for the "Show more" / expand button.
 Always use a script file to avoid shell escaping issues:
 
 ```bash
-conda run -n afrikaans-aac python /Users/johannes/code/unisa/unisa-phd-proposal/.claude/scripts/fetch_auth.py "$ARGUMENTS"
+conda run -n afrikaans-aac python /Users/johannes/code/personal/afrikaans-aac/.claude/scripts/fetch_auth.py "$ARGUMENTS"
 ```
 
 ---

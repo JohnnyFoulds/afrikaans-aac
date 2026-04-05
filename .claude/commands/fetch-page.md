@@ -46,7 +46,7 @@ Read the raw HTML output. Find the selector for the "Show more" / expand button.
 Write the script to `/tmp/fetch_page.py` and run it:
 
 ```bash
-conda run -n afrikaans-aac python /Users/johannes/code/unisa/unisa-phd-proposal/.claude/scripts/fetch_page.py "$ARGUMENTS"
+conda run -n afrikaans-aac python /Users/johannes/code/personal/afrikaans-aac/.claude/scripts/fetch_page.py "$ARGUMENTS"
 ```
 
 Then read and summarise the page content for the user.

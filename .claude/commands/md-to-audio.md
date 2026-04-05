@@ -109,7 +109,7 @@ Works for any Markdown: notes, articles, README files, academic papers. Use `--p
 Run this command using the Bash tool:
 
 ```bash
-/opt/homebrew/Caskroom/miniconda/base/envs/unisa-phd-proposal/bin/python3 /Users/johannes/code/unisa/unisa-phd-proposal/scripts/md-to-audio.py $ARGUMENTS
+/opt/homebrew/Caskroom/miniconda/base/envs/unisa-phd-proposal/bin/python3 /Users/johannes/code/personal/afrikaans-aac/scripts/md-to-audio.py $ARGUMENTS
 ```
 
 Then run `ls -lh <output-path>` and report the file size.

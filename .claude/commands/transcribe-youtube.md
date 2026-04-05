@@ -39,7 +39,7 @@ Download a YouTube video's audio, transcribe it locally, and create a structured
 
 ```bash
 /opt/homebrew/Caskroom/miniconda/base/envs/unisa-phd-proposal/bin/python \
-  /Users/johannes/code/unisa/unisa-phd-proposal/scripts/transcribe-youtube.py $ARGUMENTS
+  /Users/johannes/code/personal/afrikaans-aac/scripts/transcribe-youtube.py $ARGUMENTS
 ```
 
 After completion, read the created radar note and report:

@@ -43,7 +43,7 @@ Parse `$ARGUMENTS` as follows:
 Run this command using the Bash tool, substituting the actual paths and options:
 
 ```bash
-conda run -n unisa-phd-proposal python /Users/johannes/code/unisa/unisa-phd-proposal/scripts/transcribe_audio_mlx.py --input-audio <input_audio_path> [--output <path>] [--model <model>] [--language <lang>] [--task <task>]
+conda run -n unisa-phd-proposal python /Users/johannes/code/personal/afrikaans-aac/scripts/transcribe_audio_mlx.py --input-audio <input_audio_path> [--output <path>] [--model <model>] [--language <lang>] [--task <task>]
 ```
 
 Then read the output `.txt` file and display its contents to the user.

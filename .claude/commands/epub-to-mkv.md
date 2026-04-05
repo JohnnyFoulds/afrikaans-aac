@@ -37,7 +37,7 @@ Exactly one of `--cite-key` or `--epub` is required. They are mutually exclusive
 
 ```bash
 /opt/homebrew/Caskroom/miniconda/base/envs/unisa-phd-proposal/bin/python3 \
-  /Users/johannes/code/unisa/unisa-phd-proposal/scripts/epub-to-mkv.py $ARGUMENTS
+  /Users/johannes/code/personal/afrikaans-aac/scripts/epub-to-mkv.py $ARGUMENTS
 ```
 
 After the script completes:

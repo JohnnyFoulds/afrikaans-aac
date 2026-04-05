@@ -70,7 +70,7 @@ inside LaTeX commands: `\operatorname {A t t e n t i o n}`. Fixed automatically 
 ## Execute
 
 ```bash
-conda run -n claude-llm python3 /Users/johannes/code/unisa/unisa-phd-proposal/scripts/mistral-ocr.py $ARGUMENTS
+conda run -n claude-llm python3 /Users/johannes/code/personal/afrikaans-aac/scripts/mistral-ocr.py $ARGUMENTS
 ```
 
 After the script completes:
