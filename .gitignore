@@ -28,3 +28,7 @@ research/citation-verification/outputs/*-trial-00/
 *.swo
 .obsidian/workspace.json
 .obsidian/graph.json
+.claude/settings.local.json
+
+# Generated audio files
+*.mp3
