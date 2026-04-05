@@ -1,0 +1,12 @@
+anthropic>=0.25
+boto3>=1.40
+openai>=1.0
+mistralai>=1.0
+yt-dlp>=2024.1.0
+mlx-whisper>=0.4.3
+cairosvg>=2.7
+edge-tts>=7.2
+latex2mathml>=3.78
+opentelemetry-sdk>=1.40
+opentelemetry-exporter-otlp-proto-grpc>=1.40
+mutagen

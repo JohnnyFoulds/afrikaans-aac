@@ -1,0 +1,36 @@
+{
+    "terminal.integrated.env.osx": {
+        "CLAUDE_CODE_USE_BEDROCK": "1",
+        "ANTHROPIC_MODEL": "arn:aws:bedrock:eu-west-1:557116085116:application-inference-profile/vb6ydtnx7fbs",
+        "AWS_REGION": "eu-west-1",
+        "ANTHROPIC_DEFAULT_HAIKU_MODEL": "arn:aws:bedrock:eu-west-1:557116085116:application-inference-profile/vb6ydtnx7fbs",
+        "CLAUDE_CODE_SUBAGENT_MODEL": "arn:aws:bedrock:eu-west-1:557116085116:application-inference-profile/vb6ydtnx7fbs"
+    },
+    "claudeCode.selectedModel": "arn:aws:bedrock:eu-west-1:557116085116:application-inference-profile/vb6ydtnx7fbs",
+    "claudeCode.environmentVariables": [
+        { "name": "CLAUDE_CODE_USE_BEDROCK",       "value": "1" },
+        { "name": "ANTHROPIC_MODEL",               "value": "arn:aws:bedrock:eu-west-1:557116085116:application-inference-profile/vb6ydtnx7fbs" },
+        { "name": "AWS_REGION",                    "value": "eu-west-1" },
+        { "name": "ANTHROPIC_DEFAULT_HAIKU_MODEL", "value": "arn:aws:bedrock:eu-west-1:557116085116:application-inference-profile/vb6ydtnx7fbs" },
+        { "name": "CLAUDE_CODE_SUBAGENT_MODEL",    "value": "arn:aws:bedrock:eu-west-1:557116085116:application-inference-profile/vb6ydtnx7fbs" }
+    ],
+    "python.defaultInterpreterPath": "/opt/homebrew/Caskroom/miniconda/base/envs/aib-genai-agent-core-session-manager/bin/python",
+    "python.testing.pytestEnabled": true,
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestArgs": [
+        "tests"
+    ],
+    "cSpell.words": [
+        "caplog",
+        "genai",
+        "isinstance",
+        "klass",
+        "mlcontext",
+        "mlrun",
+        "setdefault",
+        "subpaths",
+        "vodacomsa",
+        "zenml"
+    ],
+    "claudeCode.allowDangerouslySkipPermissions": true
+}

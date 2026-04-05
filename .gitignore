@@ -1,0 +1,30 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+.venv/
+venv/
+
+# W&B local run data (sync to cloud, do not commit)
+wandb/
+
+# Pipeline outputs (intermediate and final — do not commit)
+pipeline-outputs/
+
+# Dry-run experiment artifacts (1-claim only, wrong labels — not real trial data)
+research/citation-verification/outputs/bedrock-vb6ydtnx7fbs-*/
+research/citation-verification/outputs/*-trial-dry/
+research/citation-verification/outputs/*-trial-00/
+
+# Editor
+.idea/
+*.swp
+*.swo
+.obsidian/workspace.json
+.obsidian/graph.json
