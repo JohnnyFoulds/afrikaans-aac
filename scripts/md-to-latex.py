@@ -5,7 +5,7 @@ Converts one or more markdown files to a single well-formatted LaTeX document,
 applying UNISA formatting requirements (A4, 12pt, 1.5 spacing, natbib author-year).
 
 Usage:
-    conda run -n kb-nav-agent python scripts/md-to-latex.py \\
+    conda run -n afrikaans-aac python scripts/md-to-latex.py \\
         --input   proposal/01-introduction.md [proposal/02-research-questions.md ...] \\
         --output  pipeline-outputs/proposal.tex \\
         [--bib    literature/references.bib] \\

@@ -110,7 +110,7 @@ Or use the `/compile-latex` skill which handles all passes automatically:
 ## Execute
 
 ```bash
-conda run -n kb-nav-agent python /Users/johannes/code/unisa/unisa-phd-proposal/scripts/md-to-latex.py $ARGUMENTS
+conda run -n afrikaans-aac python /Users/johannes/code/unisa/unisa-phd-proposal/scripts/md-to-latex.py $ARGUMENTS
 ```
 
 After the script completes, report:

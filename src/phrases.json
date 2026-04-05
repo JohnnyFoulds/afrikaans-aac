@@ -1,0 +1,159 @@
+{
+  "always_visible": [
+    {
+      "id": "noodgeval",
+      "label": "NOODGEVAL",
+      "phrase": "Noodgeval! Kom asseblief!",
+      "audio": "audio/noodgeval.mp3",
+      "volume": 2.5
+    },
+    {
+      "id": "roep_franscisca",
+      "label": "Roep vir Francisca",
+      "phrase": "Roep vir Francisca, asseblief.",
+      "audio": "audio/roep_franscisca.mp3"
+    }
+  ],
+  "categories": [
+    {
+      "id": "ja_nee",
+      "label": "Ja / Nee",
+      "colour": "#2e7d32",
+      "phrases": [
+        { "id": "ja",            "label": "Ja",              "phrase": "Ja.",                                  "audio": "audio/ja.mp3" },
+        { "id": "nee",           "label": "Nee",             "phrase": "Nee.",                                 "audio": "audio/nee.mp3" },
+        { "id": "miskien",       "label": "Miskien",         "phrase": "Miskien.",                             "audio": "audio/miskien.mp3" },
+        { "id": "ek_weet_nie",   "label": "Ek weet nie",     "phrase": "Ek weet nie.",                         "audio": "audio/ek_weet_nie.mp3" },
+        { "id": "dit_is_goed",   "label": "Goed / OK",       "phrase": "Dit is goed.",                         "audio": "audio/dit_is_goed.mp3" },
+        { "id": "nie_nou_nie",   "label": "Nie nou nie",     "phrase": "Nie nou nie.",                         "audio": "audio/nie_nou_nie.mp3" },
+        { "id": "ek_verstaan",   "label": "Ek verstaan",     "phrase": "Ek verstaan.",                         "audio": "audio/ek_verstaan.mp3" },
+        { "id": "verstaan_nie",  "label": "Ek verstaan nie", "phrase": "Ek verstaan nie.",                     "audio": "audio/verstaan_nie.mp3" },
+        { "id": "wag_bietjie",   "label": "Wag 'n bietjie",  "phrase": "Wag 'n bietjie, asseblief.",           "audio": "audio/wag_bietjie.mp3" }
+      ]
+    },
+    {
+      "id": "ek_het_nodig",
+      "label": "Ek het iets nodig",
+      "colour": "#e65100",
+      "phrases": [
+        { "id": "ek_is_honger",    "label": "Ek is honger",          "phrase": "Ek is honger.",                         "audio": "audio/ek_is_honger.mp3" },
+        { "id": "ek_is_dors",      "label": "Ek is dors",            "phrase": "Ek is dors.",                           "audio": "audio/ek_is_dors.mp3" },
+        { "id": "toilet",          "label": "Ek moet toilet toe",    "phrase": "Ek moet toilet toe.",                   "audio": "audio/toilet.mp3" },
+        { "id": "ek_is_moeg",      "label": "Ek is moeg",            "phrase": "Ek is moeg. Ek wil rus.",               "audio": "audio/ek_is_moeg.mp3" },
+        { "id": "ek_is_koud",      "label": "Ek kry koud",           "phrase": "Ek kry koud.",                          "audio": "audio/ek_is_koud.mp3" },
+        { "id": "ek_is_warm",      "label": "Ek kry warm",           "phrase": "Ek kry warm.",                          "audio": "audio/ek_is_warm.mp3" },
+        { "id": "help_my",         "label": "Help my asseblief",     "phrase": "Help my asseblief.",                    "audio": "audio/help_my.mp3" },
+        { "id": "ek_wil_le",       "label": "Ek wil lê",             "phrase": "Ek wil gaan lê.",                       "audio": "audio/ek_wil_le.mp3" },
+        { "id": "venster_oop",     "label": "Maak die venster oop",  "phrase": "Maak die venster oop, asseblief.",      "audio": "audio/venster_oop.mp3" }
+      ]
+    },
+    {
+      "id": "pyn",
+      "label": "Pyn",
+      "colour": "#c62828",
+      "phrases": [
+        { "id": "ek_het_pyn",      "label": "Ek het pyn",        "phrase": "Ek het pyn.",            "audio": "audio/ek_het_pyn.mp3" },
+        { "id": "kop_seer",        "label": "My kop is seer",    "phrase": "My kop is seer.",        "audio": "audio/kop_seer.mp3" },
+        { "id": "bors_seer",       "label": "My bors is seer",   "phrase": "My bors is seer.",       "audio": "audio/bors_seer.mp3" },
+        { "id": "maag_seer",       "label": "My maag is seer",   "phrase": "My maag is seer.",       "audio": "audio/maag_seer.mp3" },
+        { "id": "arm_seer",        "label": "My arm is seer",    "phrase": "My arm is seer.",        "audio": "audio/arm_seer.mp3" },
+        { "id": "been_seer",       "label": "My been is seer",   "phrase": "My been is seer.",       "audio": "audio/been_seer.mp3" },
+        { "id": "rug_seer",        "label": "My rug is seer",    "phrase": "My rug is seer.",        "audio": "audio/rug_seer.mp3" },
+        { "id": "keel_seer",       "label": "My keel is seer",   "phrase": "My keel is seer.",       "audio": "audio/keel_seer.mp3" },
+        { "id": "duiselig",        "label": "Ek voel duiselig",  "phrase": "Ek voel duiselig.",      "audio": "audio/duiselig.mp3" },
+        { "id": "hand_seer",       "label": "My hand is seer",   "phrase": "My hand is seer.",        "audio": "audio/hand_seer.mp3" }
+      ],
+      "secondary": {
+        "label": "Meer oor die pyn",
+        "phrases": [
+          { "id": "pyn_klop",      "label": "Dit klop",          "phrase": "Die pyn klop.",                    "audio": "audio/pyn_klop.mp3" },
+          { "id": "pyn_steek",     "label": "Dit steek",         "phrase": "Die pyn steek.",                   "audio": "audio/pyn_steek.mp3" },
+          { "id": "pyn_druk",      "label": "Dit druk",          "phrase": "Die pyn druk.",                    "audio": "audio/pyn_druk.mp3" },
+          { "id": "pyn_brand",     "label": "Dit brand",         "phrase": "Die pyn brand.",                   "audio": "audio/pyn_brand.mp3" },
+          { "id": "pyn_prikkel",   "label": "Dit prikkel",       "phrase": "Die pyn prikkel.",                 "audio": "audio/pyn_prikkel.mp3" },
+          { "id": "pyn_heeltyd",   "label": "Die heeltyd",       "phrase": "Die pyn is die heeltyd daar.",     "audio": "audio/pyn_heeltyd.mp3" },
+          { "id": "pyn_kom_gaan",  "label": "Kom en gaan",       "phrase": "Die pyn kom en gaan.",             "audio": "audio/pyn_kom_gaan.mp3" }
+        ]
+      }
+    },
+    {
+      "id": "ek_voel",
+      "label": "Ek voel",
+      "colour": "#6a1b9a",
+      "phrases": [
+        { "id": "voel_goed",       "label": "Ek voel goed",       "phrase": "Ek voel goed.",                        "audio": "audio/voel_goed.mp3" },
+        { "id": "voel_sleg",       "label": "Ek voel sleg",       "phrase": "Ek voel sleg.",                        "audio": "audio/voel_sleg.mp3" },
+        { "id": "ek_is_bang",      "label": "Ek is bang",         "phrase": "Ek is bang.",                          "audio": "audio/ek_is_bang.mp3" },
+        { "id": "bekommerd",       "label": "Ek is bekommerd",    "phrase": "Ek is bekommerd.",                     "audio": "audio/bekommerd.mp3" },
+        { "id": "hartseer",        "label": "Ek is hartseer",     "phrase": "Ek is hartseer.",                      "audio": "audio/hartseer.mp3" },
+        { "id": "vervelig",        "label": "Ek is verveeld",     "phrase": "Ek is verveeld.",                      "audio": "audio/vervelig.mp3" },
+        { "id": "gefrustreerd",    "label": "Ek is gefrustreerd", "phrase": "Ek is gefrustreerd.",                  "audio": "audio/gefrustreerd.mp3" },
+        { "id": "gelukkig",        "label": "Ek is gelukkig",     "phrase": "Ek is gelukkig.",                      "audio": "audio/gelukkig.mp3" },
+        { "id": "laat_my_rus",     "label": "Laat my rus",        "phrase": "Laat my rus, asseblief.",              "audio": "audio/laat_my_rus.mp3" }
+      ]
+    },
+    {
+      "id": "roep_iemand",
+      "label": "Roep iemand",
+      "colour": "#1565c0",
+      "phrases": [
+        { "id": "roep_franscisca2","label": "Roep Francisca",    "phrase": "Roep vir Francisca, asseblief.",      "audio": "audio/roep_franscisca.mp3" },
+        { "id": "roep_hannes",     "label": "Roep vir Hannes",    "phrase": "Roep vir Hannes, asseblief.",          "audio": "audio/roep_hannes.mp3" },
+        { "id": "roep_carey_anne", "label": "Roep Carey-Anne",    "phrase": "Roep vir Carey-Anne, asseblief.",      "audio": "audio/roep_carey_anne.mp3" },
+        { "id": "bel_elaine",      "label": "Bel vir Elaine",     "phrase": "Bel vir Elaine, asseblief.",           "audio": "audio/bel_elaine.mp3" },
+        { "id": "bel_fanie",       "label": "Bel vir Fanie",      "phrase": "Bel vir Fanie, asseblief.",            "audio": "audio/bel_fanie.mp3" },
+        { "id": "roep_dokter",     "label": "Roep die dokter",    "phrase": "Roep die dokter, asseblief.",          "audio": "audio/roep_dokter.mp3" },
+        { "id": "bel_ambulans",    "label": "Bel die ambulans",   "phrase": "Bel die ambulans, asseblief.",         "audio": "audio/bel_ambulans.mp3" },
+        { "id": "wil_iemand_sien", "label": "Ek wil iemand sien", "phrase": "Ek wil iemand sien.",                 "audio": "audio/wil_iemand_sien.mp3" },
+        { "id": "wil_alleen",      "label": "Ek wil alleen wees", "phrase": "Ek wil 'n bietjie alleen wees.",      "audio": "audio/wil_alleen.mp3" }
+      ]
+    },
+    {
+      "id": "praat_met_my",
+      "label": "Praat met my",
+      "colour": "#00695c",
+      "phrases": [
+        { "id": "se_dit_weer",     "label": "Sê dit weer",              "phrase": "Sê dit asseblief weer.",                        "audio": "audio/se_dit_weer.mp3" },
+        { "id": "skryf_neer",      "label": "Skryf dit neer",           "phrase": "Skryf dit neer, asseblief.",                    "audio": "audio/skryf_neer.mp3" },
+        { "id": "praat_stadiger",  "label": "Praat stadiger",           "phrase": "Praat stadiger, asseblief.",                    "audio": "audio/praat_stadiger.mp3" },
+        { "id": "nie_wat_bedoel",  "label": "Nie wat ek bedoel",        "phrase": "Dit is nie wat ek bedoel nie.",                 "audio": "audio/nie_wat_bedoel.mp3" },
+        { "id": "weet_wil_se",     "label": "Ek weet wat ek wil sê",   "phrase": "Ek weet wat ek wil sê, maar ek kan nie.",       "audio": "audio/weet_wil_se.mp3" },
+        { "id": "wys_my",          "label": "Wys my",                   "phrase": "Wys my, asseblief.",                            "audio": "audio/wys_my.mp3" },
+        { "id": "verstaan_nie2",   "label": "Ek verstaan nie",          "phrase": "Ek verstaan dit nie.",                          "audio": "audio/verstaan_nie.mp3" },
+        { "id": "dankie",          "label": "Dankie",                   "phrase": "Dankie.",                                       "audio": "audio/dankie.mp3" },
+        { "id": "asseblief",       "label": "Asseblief",                "phrase": "Asseblief.",                                    "audio": "audio/asseblief.mp3" }
+      ]
+    },
+    {
+      "id": "aktiwiteite",
+      "label": "Aktiwiteite",
+      "colour": "#f57f17",
+      "phrases": [
+        { "id": "tv_kyk",          "label": "Ek wil TV kyk",            "phrase": "Ek wil TV kyk.",                                "audio": "audio/tv_kyk.mp3" },
+        { "id": "musiek",          "label": "Ek wil musiek luister",    "phrase": "Ek wil musiek luister.",                        "audio": "audio/musiek.mp3" },
+        { "id": "buite",           "label": "Ek wil buitentoe gaan",    "phrase": "Ek wil buitentoe gaan.",                        "audio": "audio/buite.mp3" },
+        { "id": "boek_lees",       "label": "Ek wil 'n boek lees",     "phrase": "Ek wil 'n boek lees.",                          "audio": "audio/boek_lees.mp3" },
+        { "id": "tv_aan",          "label": "Skakel die TV aan",        "phrase": "Skakel die TV aan, asseblief.",                 "audio": "audio/tv_aan.mp3" },
+        { "id": "tv_af",           "label": "Skakel die TV af",         "phrase": "Skakel die TV af, asseblief.",                  "audio": "audio/tv_af.mp3" },
+        { "id": "lig_aan",         "label": "Skakel die lig aan",       "phrase": "Skakel die lig aan, asseblief.",                "audio": "audio/lig_aan.mp3" },
+        { "id": "lig_af",          "label": "Skakel die lig af",        "phrase": "Skakel die lig af, asseblief.",                 "audio": "audio/lig_af.mp3" },
+        { "id": "venster_toe",     "label": "Maak die venster toe",     "phrase": "Maak die venster toe, asseblief.",              "audio": "audio/venster_toe.mp3" }
+      ]
+    },
+    {
+      "id": "beroerte_info",
+      "label": "Ek het 'n beroerte gehad",
+      "colour": "#37474f",
+      "phrases": [
+        { "id": "het_beroerte",    "label": "Ek het 'n beroerte gehad",     "phrase": "Ek het 'n beroerte gehad.",                              "audio": "audio/het_beroerte.mp3" },
+        { "id": "kan_nie_praat",   "label": "Ek kan nie praat nie",          "phrase": "Ek kan nie praat nie, maar ek verstaan alles.",          "audio": "audio/kan_nie_praat.mp3" },
+        { "id": "wees_geduldig",   "label": "Wees geduldig",                 "phrase": "Wees asseblief geduldig met my.",                        "audio": "audio/wees_geduldig.mp3" },
+        { "id": "praat_stadiger2", "label": "Praat stadiger",                "phrase": "Praat stadiger, asseblief.",                             "audio": "audio/praat_stadiger.mp3" },
+        { "id": "wys_na_dit",      "label": "Wys na dit",                    "phrase": "Wys na wat jy bedoel, asseblief.",                       "audio": "audio/wys_na_dit.mp3" },
+        { "id": "het_n_app",       "label": "Ek het 'n app",                 "phrase": "Ek het 'n app wat namens my praat.",                     "audio": "audio/het_n_app.mp3" },
+        { "id": "brein_ok",        "label": "My brein is OK",                "phrase": "My brein werk. Ek kan net nie praat nie.",                "audio": "audio/brein_ok.mp3" },
+        { "id": "dankie_geduld",   "label": "Dankie vir jou geduld",         "phrase": "Dankie vir jou geduld.",                                 "audio": "audio/dankie_geduld.mp3" }
+      ]
+    }
+  ]
+}

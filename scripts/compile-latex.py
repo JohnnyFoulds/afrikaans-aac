@@ -6,7 +6,7 @@ produces a PDF. Copies the project .bib file into the output directory so
 bibtex can resolve citations regardless of where the .tex file lives.
 
 Usage:
-    conda run -n kb-nav-agent python scripts/compile-latex.py \\
+    conda run -n afrikaans-aac python scripts/compile-latex.py \\
         --input   pipeline-outputs/proposal.tex \\
         [--output-dir pipeline-outputs/] \\
         [--open]

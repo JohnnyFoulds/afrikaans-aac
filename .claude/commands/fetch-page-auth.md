@@ -41,10 +41,10 @@ Use this for:
 | ResearchGate | `.researchgate.net` |
 | Academia.edu | `.academia.edu` |
 
-**Prerequisite:** `browser_cookie3` must be installed in the `kb-nav-agent` env:
+**Prerequisite:** `browser_cookie3` must be installed in the `afrikaans-aac` env:
 
 ```bash
-conda run -n kb-nav-agent pip install browser-cookie3
+conda run -n afrikaans-aac pip install browser-cookie3
 ```
 
 On first use macOS will prompt for your **Mac login password** to decrypt the Chrome cookie store from Keychain. This is a standard macOS security prompt — enter your login password (same one used to unlock your Mac).
@@ -82,7 +82,7 @@ Read the raw HTML output. Find the selector for the "Show more" / expand button.
 Always use a script file to avoid shell escaping issues:
 
 ```bash
-conda run -n kb-nav-agent python /Users/johannes/code/unisa/unisa-phd-proposal/.claude/scripts/fetch_auth.py "$ARGUMENTS"
+conda run -n afrikaans-aac python /Users/johannes/code/unisa/unisa-phd-proposal/.claude/scripts/fetch_auth.py "$ARGUMENTS"
 ```
 
 ---

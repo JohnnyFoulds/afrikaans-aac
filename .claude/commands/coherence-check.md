@@ -64,7 +64,7 @@ Then ask Claude to execute those specific edits.
 ## Execute
 
 ```bash
-conda run -n kb-nav-agent python /Users/johannes/code/unisa/unisa-phd-proposal/scripts/coherence-check.py $ARGUMENTS
+conda run -n afrikaans-aac python /Users/johannes/code/unisa/unisa-phd-proposal/scripts/coherence-check.py $ARGUMENTS
 ```
 
 After the script completes, read `pipeline-outputs/coherence-report.md` and present the findings to the user, organised by dimension. Ask which items to action.

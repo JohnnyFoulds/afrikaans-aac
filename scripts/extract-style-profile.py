@@ -8,7 +8,7 @@ hypotheses are propositional statements backed by direct quotations from the
 exemplar text. The profile is consumed by writing-pipeline.py --style-profile.
 
 Usage:
-    conda run -n kb-nav-agent python scripts/extract-style-profile.py \\
+    conda run -n afrikaans-aac python scripts/extract-style-profile.py \\
         --input  literature/mkv/gregor-2020-design-principle.md \\
         --output .style-profile.md \\
         [--n-hypotheses 10] \\

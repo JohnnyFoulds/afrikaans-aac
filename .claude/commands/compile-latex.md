@@ -51,7 +51,7 @@ and may contain Unicode characters that require LuaLaTeX's native Unicode engine
 ## Execute
 
 ```bash
-conda run -n kb-nav-agent python /Users/johannes/code/unisa/unisa-phd-proposal/scripts/compile-latex.py $ARGUMENTS
+conda run -n afrikaans-aac python /Users/johannes/code/unisa/unisa-phd-proposal/scripts/compile-latex.py $ARGUMENTS
 ```
 
 After the script completes, report the path to the PDF and any LaTeX errors or warnings

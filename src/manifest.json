@@ -1,0 +1,11 @@
+{
+  "name": "Pa se App",
+  "short_name": "Pa se App",
+  "description": "Afrikaans AAC kommunikasie-app",
+  "start_url": "/",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#212121",
+  "theme_color": "#212121",
+  "icons": []
+}

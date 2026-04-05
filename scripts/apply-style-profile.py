@@ -12,7 +12,7 @@ writing pipeline. Use it:
   - On JH's own writing samples to check how the exemplar style compares
 
 Usage:
-    conda run -n kb-nav-agent python scripts/apply-style-profile.py \\
+    conda run -n afrikaans-aac python scripts/apply-style-profile.py \\
         --input   proposal/01-introduction.md \\
         --profile .style-profile.md \\
         --output  pipeline-outputs/01-introduction-styled.md \\

@@ -147,7 +147,7 @@ If a required dependency is missing from the environment, add it to `requirement
 # Then add to requirements.txt so it is reproducible
 ```
 
-Never use a different conda environment (e.g. `kb-nav-agent`, `claude-llm`) as a workaround for a missing dependency — fix the project environment instead.
+Never use a different conda environment (e.g. `afrikaans-aac`, `claude-llm`) as a workaround for a missing dependency — fix the project environment instead.
 
 ---
 

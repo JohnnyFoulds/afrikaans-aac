@@ -251,20 +251,35 @@ Run this before committing any new literature files.
 
 ---
 
-## Current state (as of last audit)
+## Current state (as of 2026-04-05)
 
 | Has PDF + MKV | Has PDF only | Has MKV only | BIB only (not yet downloaded) |
 |:---:|:---:|:---:|:---:|
-| 12 | 1 | 0 | 19 |
+| 14 | 0 | 0 | 0 |
 
-Papers with full chain (PDF + MKV): `brown-2025-rag-survey`, `es-2024-ragas`,
-`hevner-2004-dsr`, `lang-2025-rag-chatbot`, `lewis-2020-rag`,
-`ndibalema-2022-odl-constraints`, `ndimbo-2025-swahili-rag`,
-`ndunagu-2025-chatbot-odl`, `sawarkar-2024-blended-rag`, `sweller-1994-clt`,
-`thakur-2021-beir`, `vaswani-2017-attention`.
+### Academic papers (4)
 
-One PDF without MKV: `GEM Report UNESCO_385723eng.pdf` — background reading, not
-cited in the proposal, no bib entry needed until it is cited.
+| Cite key | Description | PDF | MKV |
+|---|---|:---:|:---:|
+| `beukelman-2020-aac` | Beukelman & Light (2020) — *AAC* 5th ed., Paul H. Brookes | ✓ | ✓ |
+| `hattingh-2020-afrikaans-vocab` | Hattingh & Tönsing (2020) — Afrikaans Grade R core vocab, SAJCD | ✓ | ✓ |
+| `koul-2011-aac-aphasia` | Koul & Beck (2011) — *AAC for Adults with Aphasia*, Brill | ✓ | ✓ |
+| `odendaal-2022-sa-slts` | Odendaal (2022) — SA SLT perspectives on AAC for post-stroke aphasia, UP Master's | ✓ | ✓ |
+
+### Clinical guides and communication boards (10)
+
+| Cite key | Description | PDF | MKV |
+|---|---|:---:|:---:|
+| `bornman-2025-saslha-medical` | Bornman & Koekemoer (2025) — SASLHA Afrikaans Medical Context Board | ✓ | ✓ |
+| `bornman-2025-saslha-school` | Bornman & Koekemoer (2025) — SASLHA Afrikaans School Board | ✓ | ✓ |
+| `bornman-2025-saslha-preschool` | Bornman & Koekemoer (2025) — SASLHA Afrikaans Preschool Board | ✓ | ✓ |
+| `caac-2025-healthcare-board` | UP CAAC (2025) — Afrikaans Healthcare Communication Board | ✓ | ✓ |
+| `lowis-2024-caya-aac-aphasia` | Lowis et al. (2024) — CAYA AAC Resource for Aphasia | ✓ | ✓ |
+| `touchchat-2024-aphasia-guide` | TouchChat (2024) — Communication Journey: Aphasia guide | ✓ | ✓ |
+| `tobii-aphasia-therapy-guide` | Tobii Dynavox — Communication Activity and Therapy Guide for Aphasia | ✓ | ✓ |
+| `tobii-aac-needs-assessment` | Tobii Dynavox — AAC Needs Assessment Guide | ✓ | ✓ |
+| `weissling-aphasia-communication` | Weissling — Post-stroke aphasia communication strategies for non-SLPs | ✓ | ✓ |
+| `stroke-comm-high-low-tech` | High/Low tech AAC after stroke — for non-SLP disciplines | ✓ | ✓ |
 
 ---
 
