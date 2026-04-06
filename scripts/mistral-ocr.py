@@ -66,7 +66,10 @@ def _load_dotenv(env_path: Path) -> None:
 
 _load_dotenv(REPO_ROOT / ".env")
 
-from mistralai import Mistral  # noqa: E402
+try:
+    from mistralai import Mistral  # noqa: E402
+except ImportError:
+    from mistralai.client import Mistral  # noqa: E402
 
 
 def _bib_keys(bib_path: Path) -> set[str]:
