@@ -3,7 +3,7 @@
 # Zero dependencies (no cowsay, no jq, no Python)
 # Commands: /<figure>[g|r|b|y] <text>  /rm <id>  /clear  /list  /animals  /colors  /q
 
-set -eo pipefail
+set -o pipefail
 
 PERSIST="$HOME/.cowboard.json"
 COLOR_RESET="\033[0m"
@@ -852,17 +852,77 @@ EOF
   esac
 }
 
+# make_sticky <text> <wrap_width>
+# Renders a sticky note with a curled top-right corner. No animal.
+make_sticky() {
+  local text="$1"
+  # Wrap width: sqrt(len * 2) gives a roughly square note (factor 2 for terminal char aspect).
+  # Clamp between the longest single word and 40.
+  local len=${#text}
+  local wrap; wrap=$(( len > 0 ? $(echo "scale=0; sqrt($len * 4) / 1" | bc) : 4 ))
+  (( wrap > 40 )) && wrap=40
+
+  # word-wrap
+  local words=($text)
+  local lines=()
+  local cur=""
+  for word in "${words[@]}"; do
+    if [[ -z "$cur" ]]; then
+      cur="$word"
+    elif (( ${#cur} + 1 + ${#word} <= wrap )); then
+      cur="$cur $word"
+    else
+      lines+=("$cur")
+      cur="$word"
+    fi
+  done
+  [[ -n "$cur" ]] && lines+=("$cur")
+
+  # max = longest line (no minimum — fit to content)
+  local max=0
+  for l in "${lines[@]}"; do (( ${#l} > max )) && max=${#l}; done
+
+  local curl=2
+  local inner=$(( max + 2 ))
+
+  # top border with curl
+  printf '+'
+  printf '%*s' $(( inner - curl )) '' | tr ' ' '-'
+  printf '%s+\n' '\\'
+
+  # curl row
+  printf '|'
+  printf '%*s' $(( inner - curl )) ''
+  printf ' \\'
+  printf '\n'
+
+  # text rows
+  for l in "${lines[@]}"; do
+    printf '| %-*s |\n' "$max" "$l"
+  done
+
+  # bottom border
+  printf '+'
+  printf '%*s' "$inner" '' | tr ' ' '-'
+  printf '+\n'
+}
+
 # moo <figure> <text>
-# Full cowsay equivalent: bubble + animal
+# Full cowsay equivalent: bubble + animal (or sticky note for default/cow)
 moo() {
   local figure="$1"
   local text="$2"
   local wrap="${3:-40}"
+
+  if [[ "$figure" == "sticky" || "$figure" == "note" ]]; then
+    make_sticky "$text"
+    return
+  fi
+
   local bubble
   bubble=$(make_bubble "$text" "$wrap")
   local animal
   animal=$(get_animal "$figure")
-  # Replace TH placeholder: first occurrence → \, subsequent → space
   local out=""
   while IFS= read -r line; do
     out+="${line//TH/\\}"$'\n'
@@ -881,6 +941,7 @@ three-eyes turkey turtle tux udder vader-koala vader www" | tr ' ' '\n' | sort
 }
 
 figure_valid() {
+  [[ "$1" == "sticky" || "$1" == "note" ]] && return 0
   list_figures | grep -qx "$1"
 }
 
@@ -949,12 +1010,22 @@ parse_cmd() {
   [[ -z "$rest" ]] && return 1
   PARSE_TEXT="$rest"
   local last="${figure_part: -1}"
+  local stem="${figure_part%?}"
+  # Only treat last char as color suffix if the stem is a valid figure name
   case "$last" in
-    g) PARSE_COLOR="green";  PARSE_FIGURE="${figure_part%?}" ;;
-    r) PARSE_COLOR="red";    PARSE_FIGURE="${figure_part%?}" ;;
-    b) PARSE_COLOR="blue";   PARSE_FIGURE="${figure_part%?}" ;;
-    y) PARSE_COLOR="yellow"; PARSE_FIGURE="${figure_part%?}" ;;
-    *)  PARSE_COLOR="default"; PARSE_FIGURE="$figure_part" ;;
+    g|r|b|y)
+      if [[ -n "$stem" ]] && figure_valid "$stem"; then
+        case "$last" in
+          g) PARSE_COLOR="green"  ;;
+          r) PARSE_COLOR="red"    ;;
+          b) PARSE_COLOR="blue"   ;;
+          y) PARSE_COLOR="yellow" ;;
+        esac
+        PARSE_FIGURE="$stem"
+      else
+        PARSE_COLOR="default"; PARSE_FIGURE="$figure_part"
+      fi ;;
+    *) PARSE_COLOR="default"; PARSE_FIGURE="$figure_part" ;;
   esac
   [[ -z "$PARSE_FIGURE" ]] && return 1
   return 0
@@ -964,7 +1035,7 @@ parse_cmd() {
 
 _last_cols=0
 _last_rows=0
-_last_note_sig=""
+_last_note_sig="FORCE"
 
 draw_divider() {
   local cols; cols=$(tput cols)
@@ -999,79 +1070,195 @@ render_note_at() {
   printf "${COLOR_RESET}"
 }
 
-compute_layout() {
-  local cols="$1" canvas_rows="$2"
-  L_ids=(); L_colors=(); L_rendereds=(); L_rows=(); L_cols=(); L_widths=(); L_heights=()
+# _try_layout <cols> <canvas_rows>
+# Attempts masonry layout with current _wids/_hgts/_rnds arrays.
+# Writes results into _asgn[], _cx[], _cy_result[], _fits[].
+# Returns 1 if any note didn't fit, 0 if all fit.
+_try_layout() {
+  local cols="$1" canvas_rows="$2" GAP=2
+  (( canvas_rows < 1 )) && { _fits=(); local i; for (( i=0; i<${#_ids[@]}; i++ )); do _fits+=(0); done; return 1; }
+  local n=${#_ids[@]}
 
-  [[ ! -s "$PERSIST" ]] && return
-
-  local raw_ids=() raw_colors=() raw_rendereds=() raw_widths=() raw_heights=()
-  while IFS=$'\t' read -r nid nfigure ncolor ntext nrendered; do
-    local rendered; rendered=$(decode "$nrendered")
-    local nw nh
-    nw=$(note_width "$rendered")
-    nh=$(note_height "$rendered")
-    raw_ids+=("$nid"); raw_colors+=("$ncolor"); raw_rendereds+=("$rendered")
-    raw_widths+=("$nw"); raw_heights+=("$nh")
-  done < "$PERSIST"
-
-  local n=${#raw_ids[@]}
-  (( n == 0 )) && return
-
-  local GAP=2
-  # Estimate number of columns using median width
-  local sorted_w=("${raw_widths[@]}")
+  # Median width for column count estimate
+  local sorted_w=("${_wids[@]}")
   IFS=$'\n' sorted_w=($(printf '%s\n' "${sorted_w[@]}" | sort -n)); unset IFS
   local median_w=${sorted_w[$(( n / 2 ))]}
   local num_cols=$(( cols / (median_w + GAP + 4) ))
   (( num_cols < 1 )) && num_cols=1
   (( num_cols > n )) && num_cols=$n
 
-  # col_x is dynamic: starts at 0 and advances by actual max note width in that column + GAP
-  local col_y=() col_x=() col_max_w=()
-  for (( c=0; c<num_cols; c++ )); do
-    col_y[$c]=0; col_max_w[$c]=0
+  # Sort notes tallest-first for better bin-packing; _order maps sorted→original index
+  local _order=()
+  local _order_tmp
+  _order_tmp=$(for (( i=0; i<n; i++ )); do printf '%s %s\n' "${_hgts[$i]}" "$i"; done | sort -rn | awk '{print $2}')
+  while IFS= read -r idx; do _order+=("$idx"); done <<< "$_order_tmp"
+
+  local col_y=() col_max_w=()
+  for (( c=0; c<num_cols; c++ )); do col_y[$c]=0; col_max_w[$c]=0; done
+
+  # Pass A: assign to shortest column (tallest notes first)
+  _asgn=()
+  for (( i=0; i<n; i++ )); do _asgn+=(-1); done  # init
+  for (( si=0; si<n; si++ )); do
+    local i=${_order[$si]}
+    local best=0
+    for (( c=1; c<num_cols; c++ )); do (( col_y[c] < col_y[best] )) && best=$c; done
+    _asgn[$i]=$best
+    (( _wids[i] > col_max_w[best] )) && col_max_w[$best]=${_wids[i]}
+    col_y[$best]=$(( col_y[$best] + _hgts[i] + 1 ))
   done
-  # First pass: assign notes to columns, compute col_x from actual widths
-  local assign=()
-  for (( i=0; i<n; i++ )); do
-    local best_col=0
+
+  # Reduce num_cols until the layout fits horizontally, then redo assignment
+  local prev_num_cols=$(( num_cols + 1 ))
+  while (( num_cols != prev_num_cols )); do
+    prev_num_cols=$num_cols
+
+    # Recompute col_x for current num_cols
+    _cx=()
+    _cx[0]=0
     for (( c=1; c<num_cols; c++ )); do
-      (( col_y[c] < col_y[best_col] )) && best_col=$c
+      _cx[$c]=$(( _cx[c-1] + col_max_w[c-1] + GAP ))
     done
-    assign+=("$best_col")
-    (( raw_widths[i] > col_max_w[best_col] )) && col_max_w[$best_col]=${raw_widths[i]}
-    col_y[$best_col]=$(( col_y[$best_col] + raw_heights[i] + 1 ))
-  done
-  # Compute col_x from actual max widths
-  col_x[0]=0
-  for (( c=1; c<num_cols; c++ )); do
-    col_x[$c]=$(( col_x[c-1] + col_max_w[c-1] + GAP ))
-  done
-  # Check last column fits on screen; if not reduce num_cols and redo
-  while (( num_cols > 1 && col_x[num_cols-1] + col_max_w[num_cols-1] > cols )); do
-    (( num_cols-- ))
-    col_x[0]=0
-    for (( c=1; c<num_cols; c++ )); do
-      col_x[$c]=$(( col_x[c-1] + col_max_w[c-1] + GAP ))
+
+    # If it fits, done
+    if (( _cx[num_cols-1] + col_max_w[num_cols-1] <= cols )); then
+      break
+    fi
+
+    # Doesn't fit — reduce and redo full assignment with fewer columns
+    (( num_cols > 1 )) && (( num_cols-- )) || break
+    for (( c=0; c<num_cols; c++ )); do col_y[$c]=0; col_max_w[$c]=0; done
+    _asgn=()
+    for (( i=0; i<n; i++ )); do _asgn+=(-1); done
+    for (( si=0; si<n; si++ )); do
+      local i=${_order[$si]}
+      local best=0
+      for (( c=1; c<num_cols; c++ )); do (( col_y[c] < col_y[best] )) && best=$c; done
+      _asgn[$i]=$best
+      (( _wids[i] > col_max_w[best] )) && col_max_w[$best]=${_wids[i]}
+      col_y[$best]=$(( col_y[$best] + _hgts[i] + 1 ))
     done
   done
 
-  # Second pass: actually record layout with correct positions
+  # Pass B: place each note and check if it fits
   for (( c=0; c<num_cols; c++ )); do col_y[$c]=0; done
+  _cy_result=(); _fits=()
+  local all_fit=0
   for (( i=0; i<n; i++ )); do
-    local best_col=0
-    for (( c=1; c<num_cols; c++ )); do
-      (( col_y[c] < col_y[best_col] )) && best_col=$c
-    done
-    local pr=${col_y[$best_col]} pc=${col_x[$best_col]}
-    if (( pr + raw_heights[i] <= canvas_rows )); then
-      L_ids+=("${raw_ids[$i]}"); L_colors+=("${raw_colors[$i]}")
-      L_rendereds+=("${raw_rendereds[$i]}")
-      L_rows+=("$pr"); L_cols+=("$pc")
-      L_widths+=("${raw_widths[$i]}"); L_heights+=("${raw_heights[$i]}")
+    local bc=${_asgn[$i]} pr pc
+    pr=${col_y[$bc]}
+    pc=${_cx[$bc]}
+    _cy_result+=("$pr")
+    if (( pr + _hgts[i] <= canvas_rows && pc + _wids[i] <= cols )); then
+      _fits+=(1)
+    else
+      _fits+=(0)
+      all_fit=1
     fi
-    col_y[$best_col]=$(( col_y[$best_col] + raw_heights[i] + 1 ))
+    col_y[$bc]=$(( col_y[$bc] + _hgts[i] + 1 ))
+  done
+  return $all_fit
+}
+
+compute_layout() {
+  local cols="$1" canvas_rows="$2"
+  L_ids=(); L_colors=(); L_rendereds=(); L_rows=(); L_cols=(); L_widths=(); L_heights=()
+
+  [[ ! -s "$PERSIST" ]] && return
+
+  # Load all notes — keep full animal rendering and sticky fallback separately
+  local _ids=() _colors=() _texts=()
+  local _full_rnds=() _full_wids=() _full_hgts=()
+  local _stky_rnds=() _stky_wids=() _stky_hgts=()
+  local _use_sticky=()   # 0=full, 1=sticky
+
+  while IFS=$'\t' read -r nid nfigure ncolor ntext nrendered; do
+    local rendered; rendered=$(decode "$nrendered")
+    local text; text=$(decode "$ntext")
+    local sticky; sticky=$(make_sticky "$text")
+    _ids+=("$nid"); _colors+=("$ncolor"); _texts+=("$text")
+    _full_rnds+=("$rendered")
+    _full_wids+=("$(note_width "$rendered")")
+    _full_hgts+=("$(note_height "$rendered")")
+    _stky_rnds+=("$sticky")
+    _stky_wids+=("$(note_width "$sticky")")
+    _stky_hgts+=("$(note_height "$sticky")")
+    _use_sticky+=(0)
+  done < "$PERSIST"
+
+  local n=${#_ids[@]}
+  (( n == 0 )) && return
+
+  # Working arrays for layout attempts
+  local _wids=() _hgts=() _rnds=()
+  local _asgn=() _cx=() _cy_result=() _fits=()
+
+  # Iteratively substitute the largest non-sticky note until everything fits
+  local max_iters=$(( n + 1 )) iter=0
+  while (( iter <= max_iters )); do
+    # Build working arrays from current sticky flags
+    _wids=(); _hgts=(); _rnds=()
+    for (( i=0; i<n; i++ )); do
+      if (( _use_sticky[i] )); then
+        _wids+=("${_stky_wids[$i]}"); _hgts+=("${_stky_hgts[$i]}"); _rnds+=("${_stky_rnds[$i]}")
+      else
+        _wids+=("${_full_wids[$i]}"); _hgts+=("${_full_hgts[$i]}"); _rnds+=("${_full_rnds[$i]}")
+      fi
+    done
+
+    _try_layout "$cols" "$canvas_rows" && break  # all fit
+
+    # Find the largest full-size note to substitute to sticky.
+    # Prefer notes that didn't fit; if all non-fitting are already sticky,
+    # pick the largest *fitting* full note (it may be causing column bloat).
+    local worst=-1 worst_area=0
+    for (( i=0; i<n; i++ )); do
+      if (( _fits[i] == 0 && _use_sticky[i] == 0 )); then
+        local area=$(( _full_wids[i] * _full_hgts[i] ))
+        if (( area > worst_area )); then worst_area=$area; worst=$i; fi
+      fi
+    done
+    if (( worst == -1 )); then
+      # No non-fitting full notes — try shrinking the largest fitting full note
+      # in case it is bloating a column and preventing others from fitting
+      for (( i=0; i<n; i++ )); do
+        if (( _use_sticky[i] == 0 )); then
+          local area=$(( _full_wids[i] * _full_hgts[i] ))
+          if (( area > worst_area )); then worst_area=$area; worst=$i; fi
+        fi
+      done
+    fi
+    if (( worst == -1 )); then
+      # Everything is already sticky; final layout pass and done
+      _try_layout "$cols" "$canvas_rows"
+      break
+    fi
+    _use_sticky[$worst]=1
+    (( iter++ ))
+  done
+
+  # Rebuild working arrays one last time so _wids/_hgts/_rnds match final flags
+  _wids=(); _hgts=(); _rnds=()
+  for (( i=0; i<n; i++ )); do
+    if (( _use_sticky[i] )); then
+      _wids+=("${_stky_wids[$i]}"); _hgts+=("${_stky_hgts[$i]}"); _rnds+=("${_stky_rnds[$i]}")
+    else
+      _wids+=("${_full_wids[$i]}"); _hgts+=("${_full_hgts[$i]}"); _rnds+=("${_full_rnds[$i]}")
+    fi
+  done
+  # Run a final authoritative layout so _fits[], _asgn[], _cx[], _cy_result[]
+  # are fully consistent with the current _wids/_hgts
+  _try_layout "$cols" "$canvas_rows"
+
+  # Emit final layout
+  for (( i=0; i<n; i++ )); do
+    local bc=${_asgn[$i]} pr=${_cy_result[$i]} pc=${_cx[${_asgn[$i]}]}
+    if (( _fits[i] )); then
+      L_ids+=("${_ids[$i]}"); L_colors+=("${_colors[$i]}")
+      L_rendereds+=("${_rnds[$i]}")
+      L_rows+=("$pr"); L_cols+=("$pc")
+      L_widths+=("${_wids[$i]}"); L_heights+=("${_hgts[$i]}")
+    fi
   done
 }
 
@@ -1095,6 +1282,7 @@ draw_bar() {
 redraw() {
   local cols rows
   cols=$(tput cols); rows=$(tput lines)
+  (( cols < 10 || rows < 8 )) && return  # terminal too small to do anything useful
   local canvas_rows=$(( rows - 6 ))
   local size_changed=0
   (( cols != _last_cols || rows != _last_rows )) && size_changed=1
@@ -1250,15 +1438,19 @@ main() {
   HISTSIZE=500
   history -r "$HISTFILE" 2>/dev/null || true
 
-  trap '_dirty=1; redraw; local rows; rows=$(tput lines); tput cup $(( rows - 3 )) 2; printf "❯ "' SIGWINCH
+  bind 'set bell-style none' 2>/dev/null || true
+
+  trap '_cowboard_resized=1; _last_note_sig="FORCE"; redraw; _trap_r=$(tput lines); tput cup $(( _trap_r - 3 )) 0; tput el; printf "❯ "' SIGWINCH
   trap 'history -w "$HISTFILE"' EXIT
 
+  local _cowboard_resized=0
   while true; do
     if (( _dirty )); then redraw; _dirty=0; fi
 
+    _cowboard_resized=0
     local rows; rows=$(tput lines)
     tput cup $(( rows - 3 )) 0; tput el
-    IFS= read -e -r -p "❯ " input || { echo ""; break; }
+    IFS= read -e -r -p "❯ " input || { (( _cowboard_resized )) && continue; echo ""; break; }
     [[ -n "$input" ]] && history -s "$input"
 
     input="${input#"${input%%[![:space:]]*}"}"
@@ -1270,8 +1462,28 @@ main() {
 
     if [[ "$input" == "/q" || "$input" == "/quit" || "$input" == "/exit" ]]; then clear; break; fi
 
+    if [[ "$input" == "/?" || "$input" == "/help" ]]; then
+      clear
+      printf '\n'
+      printf '  \033[1mcowboard — commands\033[0m\n\n'
+      printf '  \033[1m/<figure> <text>\033[0m        add a note  (e.g. /tux Hello)\n'
+      printf '  \033[1m/<figure>[g|r|b|y] <text>\033[0m  add a coloured note  (e.g. /dragonr URGENT)\n'
+      printf '  \033[1m/cow <text>\033[0m             add a default cow note\n'
+      printf '  \033[1m/random <text>\033[0m          random figure\n'
+      printf '  \033[1m<text>\033[0m                  plain text → default cow note\n\n'
+      printf '  \033[1m/animals\033[0m                interactive animal picker\n'
+      printf '  \033[1m/colors\033[0m                 list available colours\n'
+      printf '  \033[1m/list\033[0m                   list all notes with ids\n'
+      printf '  \033[1m/rm <id>\033[0m                remove a note by id\n'
+      printf '  \033[1m/clear\033[0m                  remove all notes (with confirmation)\n\n'
+      printf '  \033[1m/? /help\033[0m                show this help\n'
+      printf '  \033[1m/q /exit\033[0m                quit\n\n'
+      printf '  \033[2m↑↓ arrow keys browse command history\033[0m\n\n'
+      read -r -p "  Press enter to continue..." _; _last_note_sig="FORCE"; _dirty=1; continue
+    fi
+
     if [[ "$input" == "/list" ]]; then
-      cmd_list; read -r -p "  Press enter to continue..." _; _dirty=1; continue
+      cmd_list; read -r -p "  Press enter to continue..." _; _last_note_sig="FORCE"; _dirty=1; continue
     fi
 
     if [[ "$input" == "/colors" ]]; then
@@ -1282,7 +1494,7 @@ main() {
       printf "  $(color_code yellow)y  yellow${COLOR_RESET}\n"
       printf "  $(color_code default)(none)  default${COLOR_RESET}\n"
       echo ""
-      read -r -p "  Press enter to continue..." _; _dirty=1; continue
+      read -r -p "  Press enter to continue..." _; _last_note_sig="FORCE"; _dirty=1; continue
     fi
 
     if [[ "$input" == "/animals" ]]; then
@@ -1291,13 +1503,11 @@ main() {
       local picked="$_PICK_RESULT"
       _dirty=1
       if [[ -n "$picked" ]]; then
-        # Redraw board, then prompt with /<animal> pre-typed; user adds text + Enter
-        redraw; _dirty=0
+        # Restore board, then prompt with /<animal> pre-typed; user adds text + Enter
+        _last_note_sig="FORCE"; redraw; _dirty=0
         local rows; rows=$(tput lines)
         tput cup $(( rows - 3 )) 0; tput el
-        printf "❯ /$picked "
-        local rest=""
-        IFS= read -e -r rest
+        IFS= read -e -r -p "❯ /$picked " rest
         input="/$picked $rest"
         [[ -n "$input" ]] && history -s "$input"
         input="${input#"${input%%[![:space:]]*}"}"
@@ -1313,7 +1523,7 @@ main() {
     if [[ "$input" =~ ^/rm[[:space:]]+([0-9]+)$ ]]; then
       local rm_id="${BASH_REMATCH[1]}"
       if note_exists "$rm_id"; then
-        remove_note "$rm_id"; _last_note_sig=""; _dirty=1
+        remove_note "$rm_id"; _last_note_sig="FORCE"; _dirty=1
       else
         show_error "No note with id $rm_id"
       fi
@@ -1321,18 +1531,28 @@ main() {
     fi
 
     if [[ "$input" == "/clear" ]]; then
-      tput cup $(( rows - 3 )) 0
-      tput el
+      local rows2; rows2=$(tput lines)
+      tput cup $(( rows2 - 3 )) 0; tput el
       printf "  Remove ALL notes? [y/N] "
-      local confirm=""; IFS= read -r confirm
+      local confirm=""
+      IFS= read -r -s -n1 confirm
       if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
-        clear_all_notes; _last_note_sig=""; _dirty=1
+        clear_all_notes; _last_note_sig="FORCE"; _dirty=1
+      else
+        _last_note_sig="FORCE"; _dirty=1
       fi
       continue
     fi
 
-    # plain text → default cow
-    [[ "$input" != /* ]] && input="/cow $input"
+    # plain text → sticky note; optional color prefix: g/r/b/y <text>
+    if [[ "$input" != /* ]]; then
+      local _first="${input%% *}" _rest="${input#* }"
+      if [[ "${#_first}" == "1" && "$_first" =~ ^[grby]$ && "$_rest" != "$input" ]]; then
+        input="/sticky${_first} $_rest"
+      else
+        input="/sticky $input"
+      fi
+    fi
 
     if [[ "$input" == /* ]]; then
       if ! parse_cmd "$input"; then
