@@ -1134,74 +1134,83 @@ cmd_list() {
 }
 
 # ── animal picker ────────────────────────────────────────────────────────────
+
+# Global picker state (no nested functions / local -a on bash 3.2)
+_PICK_ANIMALS=()
+_PICK_N=0
+_PICK_NCOLS=0
+_PICK_CELL_W=0
+_PICK_ROWS=0
+_PICK_RESULT=""
+
+_picker_draw() {
+  local sel=$1 i r c
+  clear
+  tput cup 0 2; printf "\033[1mPick an animal\033[0m  (arrows  Enter=select  Esc=cancel)"
+  for (( i=0; i<_PICK_N; i++ )); do
+    r=$(( 1 + i / _PICK_NCOLS ))
+    c=$(( (i % _PICK_NCOLS) * _PICK_CELL_W ))
+    tput cup "$r" "$c"
+    if (( i == sel )); then
+      printf "\033[7m %-*s \033[0m" $(( _PICK_CELL_W - 2 )) "${_PICK_ANIMALS[$i]}"
+    else
+      printf " %-*s " $(( _PICK_CELL_W - 2 )) "${_PICK_ANIMALS[$i]}"
+    fi
+  done
+  draw_bar "$_PICK_ROWS"
+}
+
 pick_animal() {
   # Returns the chosen figure name on stdout, or empty string if cancelled.
-  local -a animals=()
-  while IFS= read -r f; do animals+=("$f"); done < <(list_figures)
-  local n=${#animals[@]}
+  _PICK_ANIMALS=()
+  while IFS= read -r f; do _PICK_ANIMALS+=("$f"); done < <(list_figures)
+  _PICK_N=${#_PICK_ANIMALS[@]}
+
+  local cols
+  cols=$(tput cols); _PICK_ROWS=$(tput lines)
+
+  local max_w=0 f
+  for f in "${_PICK_ANIMALS[@]}"; do (( ${#f} > max_w )) && max_w=${#f}; done
+  _PICK_CELL_W=$(( max_w + 3 ))
+  _PICK_NCOLS=$(( cols / _PICK_CELL_W ))
+  (( _PICK_NCOLS < 1 )) && _PICK_NCOLS=1
+
   local sel=0
-  local cols rows
-  cols=$(tput cols); rows=$(tput lines)
+  _picker_draw "$sel"
+  tput civis
 
-  # Layout: figure out how many columns fit
-  local max_w=0
-  for f in "${animals[@]}"; do (( ${#f} > max_w )) && max_w=${#f}; done
-  local cell_w=$(( max_w + 4 ))  # padding + index highlight space
-  local ncols=$(( cols / cell_w ))
-  (( ncols < 1 )) && ncols=1
-  local nrows=$(( (n + ncols - 1) / ncols ))
-
-  # Draw picker over canvas area
-  _draw_picker() {
-    local start_row=1
-    clear
-    tput cup 0 2; printf "\033[1mPick an animal\033[0m  (arrows=move  Enter=select  Esc=cancel)"
-    local i
-    for (( i=0; i<n; i++ )); do
-      local r=$(( start_row + i / ncols ))
-      local c=$(( (i % ncols) * cell_w ))
-      tput cup "$r" "$c"
-      if (( i == sel )); then
-        printf "\033[7m %-*s \033[0m" $(( cell_w - 2 )) "${animals[$i]}"
-      else
-        printf " %-*s " $(( cell_w - 2 )) "${animals[$i]}"
-      fi
-    done
-    # restore bottom bar
-    draw_bar "$rows"
-  }
-
-  _draw_picker
-  tput civis  # hide cursor during navigation
-
-  local result=""
+  local result="" key b1 b2 b3
   while true; do
-    local key seq
     IFS= read -r -s -n1 key
+    # Arrow keys arrive as 3 bytes: ESC [ A/B/C/D
     if [[ "$key" == $'\x1b' ]]; then
-      IFS= read -r -s -n1 -t 0.1 seq
-      if [[ "$seq" == "[" ]]; then
-        IFS= read -r -s -n1 -t 0.1 seq
-        case "$seq" in
-          A) (( sel > 0 )) && (( sel -= ncols )); (( sel < 0 )) && sel=0 ;;          # Up
-          B) (( sel + ncols < n )) && (( sel += ncols )) ;;                            # Down
-          C) (( sel + 1 < n )) && (( sel++ )) ;;                                       # Right
-          D) (( sel > 0 )) && (( sel-- )) ;;                                           # Left
+      IFS= read -r -s -n1 -t 1 b1
+      IFS= read -r -s -n1 -t 1 b2
+      if [[ "$b1" == "[" ]]; then
+        case "$b2" in
+          A) # Up
+            if (( sel >= _PICK_NCOLS )); then (( sel -= _PICK_NCOLS )); fi ;;
+          B) # Down
+            if (( sel + _PICK_NCOLS < _PICK_N )); then (( sel += _PICK_NCOLS )); fi ;;
+          C) # Right
+            if (( sel + 1 < _PICK_N )); then (( sel++ )); fi ;;
+          D) # Left
+            if (( sel > 0 )); then (( sel-- )); fi ;;
         esac
-        _draw_picker
+        _picker_draw "$sel"
       else
-        # plain Escape — cancel
+        # Escape with no follow-on = cancel
         result=""; break
       fi
-    elif [[ "$key" == "" || "$key" == $'\n' ]]; then
-      result="${animals[$sel]}"; break
+    elif [[ "$key" == "" || "$key" == $'\n' || "$key" == $'\r' ]]; then
+      result="${_PICK_ANIMALS[$sel]}"; break
     elif [[ "$key" == "q" || "$key" == $'\x03' ]]; then
       result=""; break
     fi
   done
 
-  tput cnorm  # restore cursor
-  printf '%s' "$result"
+  tput cnorm
+  _PICK_RESULT="$result"
 }
 
 # ── main loop ─────────────────────────────────────────────────────────────────
@@ -1263,7 +1272,9 @@ main() {
     fi
 
     if [[ "$input" == "/animals" ]]; then
-      local picked; picked=$(pick_animal)
+      _PICK_RESULT=""
+      pick_animal
+      local picked="$_PICK_RESULT"
       _dirty=1
       if [[ -n "$picked" ]]; then
         # Redraw board, then prompt with /<animal> pre-typed; user adds text + Enter
