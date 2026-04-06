@@ -1143,7 +1143,7 @@ _PICK_CELL_W=0
 _PICK_ROWS=0
 _PICK_RESULT=""
 
-_picker_draw() {
+_picker_draw_full() {
   local sel=$1 i r c
   clear
   tput cup 0 2; printf "\033[1mPick an animal\033[0m  (arrows  Enter=select  Esc=cancel)"
@@ -1158,6 +1158,21 @@ _picker_draw() {
     fi
   done
   draw_bar "$_PICK_ROWS"
+}
+
+# Redraw only the two cells that changed — no flicker
+_picker_move() {
+  local old_sel=$1 new_sel=$2 r c
+  # deselect old
+  r=$(( 1 + old_sel / _PICK_NCOLS ))
+  c=$(( (old_sel % _PICK_NCOLS) * _PICK_CELL_W ))
+  tput cup "$r" "$c"
+  printf " %-*s " $(( _PICK_CELL_W - 2 )) "${_PICK_ANIMALS[$old_sel]}"
+  # select new
+  r=$(( 1 + new_sel / _PICK_NCOLS ))
+  c=$(( (new_sel % _PICK_NCOLS) * _PICK_CELL_W ))
+  tput cup "$r" "$c"
+  printf "\033[7m %-*s \033[0m" $(( _PICK_CELL_W - 2 )) "${_PICK_ANIMALS[$new_sel]}"
 }
 
 pick_animal() {
@@ -1176,10 +1191,10 @@ pick_animal() {
   (( _PICK_NCOLS < 1 )) && _PICK_NCOLS=1
 
   local sel=0
-  _picker_draw "$sel"
+  _picker_draw_full "$sel"
   tput civis
 
-  local result="" key b1 b2 b3
+  local result="" key b1 b2 new_sel
   while true; do
     IFS= read -r -s -n1 key
     # Arrow keys arrive as 3 bytes: ESC [ A/B/C/D
@@ -1187,19 +1202,18 @@ pick_animal() {
       IFS= read -r -s -n1 -t 1 b1
       IFS= read -r -s -n1 -t 1 b2
       if [[ "$b1" == "[" ]]; then
+        new_sel=$sel
         case "$b2" in
-          A) # Up
-            if (( sel >= _PICK_NCOLS )); then (( sel -= _PICK_NCOLS )); fi ;;
-          B) # Down
-            if (( sel + _PICK_NCOLS < _PICK_N )); then (( sel += _PICK_NCOLS )); fi ;;
-          C) # Right
-            if (( sel + 1 < _PICK_N )); then (( sel++ )); fi ;;
-          D) # Left
-            if (( sel > 0 )); then (( sel-- )); fi ;;
+          A) if (( sel >= _PICK_NCOLS )); then (( new_sel = sel - _PICK_NCOLS )); fi ;;
+          B) if (( sel + _PICK_NCOLS < _PICK_N )); then (( new_sel = sel + _PICK_NCOLS )); fi ;;
+          C) if (( sel + 1 < _PICK_N )); then (( new_sel = sel + 1 )); fi ;;
+          D) if (( sel > 0 )); then (( new_sel = sel - 1 )); fi ;;
         esac
-        _picker_draw "$sel"
+        if (( new_sel != sel )); then
+          _picker_move "$sel" "$new_sel"
+          sel=$new_sel
+        fi
       else
-        # Escape with no follow-on = cancel
         result=""; break
       fi
     elif [[ "$key" == "" || "$key" == $'\n' || "$key" == $'\r' ]]; then
