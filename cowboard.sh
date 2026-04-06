@@ -1321,6 +1321,171 @@ cmd_list() {
   echo ""
 }
 
+# ── manual readline with tab completion ──────────────────────────────────────
+# _readline <row> <col>
+# Reads a line of input from the terminal, drawn at (row, col).
+# Supports: printable chars, backspace, Ctrl+U (clear), arrow up/down (history),
+#           Tab (complete /commands and /animal-names).
+# Sets global _RL_INPUT to the accepted string.
+# Returns 1 on EOF (Ctrl+D with empty buffer), 0 otherwise.
+# Sets _RL_RESIZED=1 if a SIGWINCH interrupted the read.
+
+_RL_INPUT=""
+_RL_RESIZED=0
+
+_rl_draw() {
+  # Redraw the input line at the saved position
+  tput cup "$_RL_ROW" "$_RL_COL"
+  tput el
+  printf '%s' "$_RL_INPUT"
+}
+
+_readline() {
+  _RL_ROW="$1"
+  _RL_COL="$2"
+  # If caller pre-set _RL_INPUT and already printed it, pass "prefilled" as $3
+  [[ "${3:-}" != "prefilled" ]] && _RL_INPUT=""
+  _RL_RESIZED=0
+
+  # History navigation state
+  local hist_idx=-1 hist_saved=""
+
+  if [[ "${3:-}" != "prefilled" ]]; then
+    _rl_draw
+  fi
+  tput cnorm
+
+  local key b1 b2
+  while true; do
+    IFS= read -r -s -n1 key
+    local rc=$?
+    # SIGWINCH interrupted the read
+    if (( _RL_RESIZED )); then
+      _RL_RESIZED=0
+      return 0
+    fi
+    # EOF (Ctrl+D)
+    if (( rc != 0 )); then
+      if [[ -z "$_RL_INPUT" ]]; then return 1; fi
+      continue
+    fi
+
+    case "$key" in
+      # Enter
+      ""|$'\n'|$'\r')
+        echo ""
+        return 0
+        ;;
+
+      # Tab — complete /commands and /figure names (only while still in the /word part)
+      $'\t')
+        if [[ "$_RL_INPUT" == /* && "$_RL_INPUT" != *' '* ]]; then
+          # Build candidate list: slash commands + figure names
+          local candidates=("/animals" "/clear" "/colors" "/help" "/list" "/q" "/quit" "/exit" "/random" "/rm" "/sticky" "/note")
+          local fig
+          while IFS= read -r fig; do candidates+=("/$fig"); done < <(list_figures)
+
+          # Find prefix matches
+          local matches=() cand
+          for cand in "${candidates[@]}"; do
+            [[ "$cand" == "$_RL_INPUT"* ]] && matches+=("$cand")
+          done
+
+          if (( ${#matches[@]} == 1 )); then
+            # Unique match — complete it and add a space
+            _RL_INPUT="${matches[0]} "
+            _rl_draw
+          elif (( ${#matches[@]} > 1 )); then
+            # Multiple matches — find longest common prefix
+            local common="${matches[0]}" m
+            for m in "${matches[@]}"; do
+              local i=0
+              while (( i < ${#common} && i < ${#m} )) && [[ "${common:$i:1}" == "${m:$i:1}" ]]; do (( i++ )); done
+              common="${common:0:$i}"
+            done
+            _RL_INPUT="$common"
+            _rl_draw
+            # Show options on the status line
+            local opts="${matches[*]}"
+            local rows; rows=$(tput lines)
+            tput cup $(( rows - 2 )) 0; tput el
+            printf '\033[2m  %s\033[0m' "$opts"
+            tput cup "$_RL_ROW" $(( _RL_COL + ${#_RL_INPUT} ))
+          fi
+        fi
+        ;;
+
+      # Backspace
+      $'\x7f'|$'\x08')
+        if [[ -n "$_RL_INPUT" ]]; then
+          _RL_INPUT="${_RL_INPUT%?}"
+          _rl_draw
+          tput cup "$_RL_ROW" $(( _RL_COL + ${#_RL_INPUT} ))
+        fi
+        ;;
+
+      # Ctrl+U — clear line
+      $'\x15')
+        _RL_INPUT=""
+        _rl_draw
+        ;;
+
+      # Escape sequence (arrow keys etc.)
+      $'\x1b')
+        IFS= read -r -s -n1 -t 1 b1
+        IFS= read -r -s -n1 -t 1 b2
+        if [[ "$b1" == "[" ]]; then
+          case "$b2" in
+            A)  # Up — history prev
+              if (( hist_idx == -1 )); then
+                hist_saved="$_RL_INPUT"
+                hist_idx=$(history | wc -l | tr -d ' ')
+              fi
+              if (( hist_idx > 1 )); then
+                (( hist_idx-- ))
+                _RL_INPUT=$(history | awk -v n="$hist_idx" 'NR==n{sub(/^ *[0-9]+ +/,"",$0); print}')
+                _rl_draw
+              fi
+              ;;
+            B)  # Down — history next
+              if (( hist_idx >= 0 )); then
+                local total; total=$(history | wc -l | tr -d ' ')
+                if (( hist_idx < total )); then
+                  (( hist_idx++ ))
+                  _RL_INPUT=$(history | awk -v n="$hist_idx" 'NR==n{sub(/^ *[0-9]+ +/,"",$0); print}')
+                else
+                  _RL_INPUT="$hist_saved"
+                  hist_idx=-1
+                fi
+                _rl_draw
+              fi
+              ;;
+          esac
+        fi
+        ;;
+
+      # Ctrl+C
+      $'\x03')
+        _RL_INPUT=""
+        echo ""
+        return 0
+        ;;
+
+      # Printable character
+      *)
+        if [[ -n "$key" ]]; then
+          _RL_INPUT="${_RL_INPUT}${key}"
+          printf '%s' "$key"
+          # Clear any tab-completion hints when typing
+          local rows; rows=$(tput lines)
+          tput cup $(( rows - 2 )) 0; tput el
+          tput cup "$_RL_ROW" $(( _RL_COL + ${#_RL_INPUT} ))
+        fi
+        ;;
+    esac
+  done
+}
+
 # ── animal picker ────────────────────────────────────────────────────────────
 
 # Global picker state (no nested functions / local -a on bash 3.2)
@@ -1440,7 +1605,7 @@ main() {
 
   bind 'set bell-style none' 2>/dev/null || true
 
-  trap '_cowboard_resized=1; _last_note_sig="FORCE"; redraw; _trap_r=$(tput lines); tput cup $(( _trap_r - 3 )) 0; tput el; printf "❯ "' SIGWINCH
+  trap '_RL_RESIZED=1; _cowboard_resized=1; _last_note_sig="FORCE"; redraw; _trap_r=$(tput lines); tput cup $(( _trap_r - 3 )) 0; tput el; printf "❯ "' SIGWINCH
   trap 'history -w "$HISTFILE"' EXIT
 
   local _cowboard_resized=0
@@ -1449,8 +1614,10 @@ main() {
 
     _cowboard_resized=0
     local rows; rows=$(tput lines)
-    tput cup $(( rows - 3 )) 0; tput el
-    IFS= read -e -r -p "❯ " input || { (( _cowboard_resized )) && continue; echo ""; break; }
+    tput cup $(( rows - 3 )) 0; tput el; printf "❯ "
+    _readline $(( rows - 3 )) 2 || { (( _cowboard_resized )) && continue; break; }
+    input="$_RL_INPUT"
+    (( _cowboard_resized )) && continue
     [[ -n "$input" ]] && history -s "$input"
 
     input="${input#"${input%%[![:space:]]*}"}"
@@ -1507,8 +1674,10 @@ main() {
         _last_note_sig="FORCE"; redraw; _dirty=0
         local rows; rows=$(tput lines)
         tput cup $(( rows - 3 )) 0; tput el
-        IFS= read -e -r -p "❯ /$picked" rest
-        input="/$picked$rest"
+        printf "❯ /$picked"
+        _RL_INPUT="/$picked"
+        _readline $(( rows - 3 )) 2 prefilled
+        input="$_RL_INPUT"
         [[ -n "$input" ]] && history -s "$input"
         input="${input#"${input%%[![:space:]]*}"}"
         input="${input%"${input##*[![:space:]]}"}"
