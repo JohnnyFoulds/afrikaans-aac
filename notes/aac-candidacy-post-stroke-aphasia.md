@@ -296,6 +296,33 @@ Key design implications from the literature:
 - System must support communication initiation, not just response to partner prompts
 - Customisation is not optional — no standard vocabulary set meets aphasia users' needs
 
+### 11.1 Large Buttons and Minimal Navigation
+
+Beyond the aphasia-specific literature, two additional user factors justify the large-button, low-density design:
+
+- **Limited fine motor control** — post-stroke motor impairment affects precision touch, making small targets unreliable regardless of cognitive load.
+- **No prior touchscreen familiarity** — the participant has never been a technology user; touchscreens are not a natural interaction mode for him. Large, unambiguous targets reduce the interaction barrier imposed by unfamiliar hardware.
+
+These factors compound the aphasia-specific argument for low-density displays (§8.6). Even for family members without aphasia or motor impairment, the large-button layout is easier to use — suggesting the design is robust rather than over-accommodating.
+
+### 11.2 Why Not a Keyboard?
+
+A keyboard appears to solve the problem: unlimited expressive range, no vocabulary curation, familiar metaphor. But it is the wrong tool for aphasia specifically.
+
+**The keyboard problem is linguistic, not motor.** The stroke damaged the language production system itself. Typing requires:
+
+1. Lexical retrieval — finding the word (often impaired)
+2. Phonological encoding — mapping the word to its letter sequence (often impaired)
+3. Sequential symbol production — letter by letter under impaired language (working memory burden)
+
+Beukelman (2020) states this directly: spelling for generative AAC "is often extremely difficult for people with aphasia because it requires sequencing arbitrary symbols — a double burden of motor sequencing and phonological mapping under impaired language."
+
+**Pre-stored messages bypass the damaged system.** Tapping a labelled button is *recognition*, not *production*. Recognition uses a different and typically more preserved pathway than language generation. This is why people with near-absent formal reading scores can still be 90%+ accurate when choosing from written options presented in context (§5.1) — they are recognising, not constructing.
+
+**The trade-off is real and must be managed.** A keyboard offers unlimited range; stored messages are bounded by what has been programmed. Vocabulary mismatch is a documented AAC failure mode (§8.5). This is why ongoing customisation — building vocabulary around his actual life, people, and routines — is not optional. The stored-message approach only works if the stored messages cover what he actually needs to say.
+
+**The system can evolve.** If language recovers further, the design can shift toward more generative features (partial word completion, free-text input as a supplementary option). The current stored-message implementation is the right starting point, not a permanent ceiling.
+
 ---
 
 ## 12. Sources Used
