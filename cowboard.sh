@@ -1507,8 +1507,8 @@ main() {
         _last_note_sig="FORCE"; redraw; _dirty=0
         local rows; rows=$(tput lines)
         tput cup $(( rows - 3 )) 0; tput el
-        IFS= read -e -r -p "❯ /$picked " rest
-        input="/$picked $rest"
+        IFS= read -e -r -p "❯ /$picked" rest
+        input="/$picked$rest"
         [[ -n "$input" ]] && history -s "$input"
         input="${input#"${input%%[![:space:]]*}"}"
         input="${input%"${input##*[![:space:]]}"}"
