@@ -39,6 +39,16 @@ Maintenance: SSH from Mac → edit phrases.json + run generate_audio.py → rsyn
 Always-visible bar: blue "Roep vir Francisca" + red "NOODGEVAL" (boosted volume).
 Navigation: home (3×3 category grid) → phrase screen (3×4 grid + nav column). Max 2 taps to any phrase.
 
+### Run locally
+
+```bash
+cd src
+python3 -m http.server 8080
+# open http://localhost:8080
+```
+
+A local HTTP server is required — service workers don't work over `file://`.
+
 ### Regenerate audio
 
 ```bash
