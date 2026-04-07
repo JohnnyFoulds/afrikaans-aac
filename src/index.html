@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="af">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#212121">
+  <link rel="manifest" href="manifest.json">
+  <title>Pa se App</title>
+  <style>
+    /* ============================================================
+       Reset & base
+    ============================================================ */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #212121;
+      color: #fff;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+
+    /* ============================================================
+       Always-visible bar
+       Fixed at top: Roep Francisca (left) | NOODGEVAL (right)
+    ============================================================ */
+    #always-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 68px;
+      display: flex;
+      gap: 6px;
+      padding: 6px;
+      background: #121212;
+      z-index: 1000;
+    }
+
+    #btn-franscisca {
+      flex: 1;
+      background: #1565c0;
+      color: #fff;
+      font-size: 20px;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+    }
+
+    #btn-noodgeval {
+      flex: 0 0 170px;
+      background: #c62828;
+      color: #fff;
+      font-size: 22px;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    #btn-franscisca:active { background: #0d47a1; }
+    #btn-noodgeval:active  { background: #b71c1c; }
+
+    /* ============================================================
+       Content area — sits below the always-bar
+    ============================================================ */
+    #content {
+      position: fixed;
+      top: 68px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ============================================================
+       Home screen — category grid
+    ============================================================ */
+    #home-screen {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 8px;
+      padding: 8px;
+      height: 100%;
+    }
+
+    #home-screen.hidden { display: none; }
+
+    .cat-btn {
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: clamp(18px, 2.4vw, 26px);
+      font-weight: 600;
+      cursor: pointer;
+      line-height: 1.2;
+      padding: 8px;
+      /* minimum physical size: handled by grid rows filling available height */
+    }
+
+    .cat-btn:active { filter: brightness(0.82); }
+
+    /* ============================================================
+       Phrase screen
+    ============================================================ */
+    #phrase-screen {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    #phrase-screen.hidden { display: none; }
+
+    /* Category header bar */
+    #phrase-header {
+      flex: 0 0 52px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    /* Body: phrase grid + nav column */
+    #phrase-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 90px;
+      gap: 8px;
+      padding: 8px;
+      min-height: 0;
+    }
+
+    /* Phrase grid */
+    #phrase-grid {
+      display: grid;
+      /* columns set dynamically in JS based on phrase count */
+      /* rows stretch to fill available height, matching home screen behaviour */
+      gap: 8px;
+    }
+
+    .phrase-btn {
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: clamp(18px, 2.4vw, 26px);
+      font-weight: 600;
+      cursor: pointer;
+      line-height: 1.25;
+      padding: 10px 8px;
+      min-height: 72px;
+      text-align: center;
+    }
+
+    .phrase-btn:active { filter: brightness(0.82); }
+
+    /* "Meer oor die pyn" button — distinct style */
+    .secondary-nav-btn {
+      border: 2px solid rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.08);
+    }
+
+    /* Nav column */
+    #nav-col,
+    #nav-col-secondary {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav-btn {
+      flex: 1;
+      background: #455a64;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .nav-btn:active { background: #37474f; }
+
+    /* ============================================================
+       Secondary pain screen (overlaid on phrase screen)
+    ============================================================ */
+    #secondary-screen {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    #secondary-screen.hidden { display: none; }
+
+    #secondary-header {
+      flex: 0 0 52px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 20px;
+      font-weight: 700;
+      background: #b71c1c;
+    }
+
+    #secondary-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 90px;
+      gap: 8px;
+      padding: 8px;
+      min-height: 0;
+    }
+
+    #secondary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      height: 100%;
+      gap: 8px;
+    }
+
+    /* ============================================================
+       Audio feedback flash — brief highlight on the tapped button
+    ============================================================ */
+    @keyframes tap-flash {
+      0%   { filter: brightness(1.4); }
+      100% { filter: brightness(1); }
+    }
+
+    .playing {
+      animation: tap-flash 0.4s ease-out;
+    }
+
+    /* ============================================================
+       Error state for missing audio
+    ============================================================ */
+    .no-audio {
+      opacity: 0.45;
+      border: 2px dashed rgba(255,255,255,0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Always-visible bar -->
+  <div id="always-bar">
+    <button id="btn-franscisca">Roep vir Francisca</button>
+    <button id="btn-noodgeval">&#9888; NOODGEVAL</button>
+  </div>
+
+  <!-- Main content area -->
+  <div id="content">
+
+    <!-- Home screen: category grid -->
+    <div id="home-screen"></div>
+
+    <!-- Phrase screen: header + grid + nav -->
+    <div id="phrase-screen" class="hidden">
+      <div id="phrase-header"></div>
+      <div id="phrase-body">
+        <div id="phrase-grid"></div>
+        <div id="nav-col">
+          <button class="nav-btn" id="btn-terug">&#8592; Terug</button>
+          <button class="nav-btn" id="btn-tuis">&#8962; Tuis</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Secondary pain character screen -->
+    <div id="secondary-screen" class="hidden">
+      <div id="secondary-header">Meer oor die pyn</div>
+      <div id="secondary-body">
+        <div id="secondary-grid"></div>
+        <div id="nav-col-secondary">
+          <button class="nav-btn" id="btn-terug-secondary">&#8592; Terug</button>
+          <button class="nav-btn" id="btn-tuis-secondary">&#8962; Tuis</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // ============================================================
+    // State
+    // ============================================================
+    let currentAudio = null;
+    let data = null;           // parsed phrases.json
+    let currentCategory = null; // category object currently shown
+
+    // ============================================================
+    // Audio playback
+    // ============================================================
+    function playAudio(src, buttonEl) {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+      }
+      const audio = new Audio(src);
+      currentAudio = audio;
+      audio.play().catch(() => {
+        // Autoplay policy or missing file — fail silently
+      });
+      if (buttonEl) {
+        buttonEl.classList.remove('playing');
+        // Force reflow to restart animation
+        void buttonEl.offsetWidth;
+        buttonEl.classList.add('playing');
+      }
+    }
+
+    // ============================================================
+    // Screen transitions
+    // ============================================================
+    function showHome() {
+      document.getElementById('home-screen').classList.remove('hidden');
+      document.getElementById('phrase-screen').classList.add('hidden');
+      document.getElementById('secondary-screen').classList.add('hidden');
+      currentCategory = null;
+    }
+
+    function showPhraseScreen(category) {
+      currentCategory = category;
+      const header = document.getElementById('phrase-header');
+      header.textContent = category.label;
+      header.style.background = category.colour;
+
+      buildPhraseGrid(category);
+
+      document.getElementById('home-screen').classList.add('hidden');
+      document.getElementById('phrase-screen').classList.remove('hidden');
+      document.getElementById('secondary-screen').classList.add('hidden');
+    }
+
+    function showSecondaryScreen() {
+      document.getElementById('phrase-screen').classList.add('hidden');
+      document.getElementById('secondary-screen').classList.remove('hidden');
+    }
+
+    // ============================================================
+    // Grid builders
+    // ============================================================
+    function buildCategoryGrid() {
+      const grid = document.getElementById('home-screen');
+      grid.innerHTML = '';
+
+      data.categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'cat-btn';
+        btn.textContent = cat.label;
+        btn.style.background = cat.colour;
+        btn.addEventListener('click', () => showPhraseScreen(cat));
+        grid.appendChild(btn);
+      });
+    }
+
+    function buildPhraseGrid(category) {
+      const grid = document.getElementById('phrase-grid');
+      grid.innerHTML = '';
+
+      const phrases = category.phrases || [];
+      const hasSecondary = !!category.secondary;
+
+      // Choose column count: 3 columns for ≤9 items, 4 for 10–12
+      const total = phrases.length + (hasSecondary ? 1 : 0);
+      const cols = total > 9 ? 4 : 3;
+      const rows = Math.ceil(total / cols);
+      grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      grid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+      grid.style.height = '100%';
+
+      phrases.forEach(p => {
+        const btn = makePhraseButton(p, category.colour);
+        grid.appendChild(btn);
+      });
+
+      // "Meer oor die pyn" secondary-nav button (pain category only)
+      if (hasSecondary) {
+        const btn = document.createElement('button');
+        btn.className = 'phrase-btn secondary-nav-btn';
+        btn.style.background = category.colour;
+        btn.textContent = category.secondary.label;
+        btn.addEventListener('click', () => {
+          buildSecondaryGrid(category.secondary, category.colour);
+          showSecondaryScreen();
+        });
+        grid.appendChild(btn);
+      }
+    }
+
+    function buildSecondaryGrid(secondary, colour) {
+      const grid = document.getElementById('secondary-grid');
+      grid.innerHTML = '';
+
+      secondary.phrases.forEach(p => {
+        const btn = makePhraseButton(p, colour);
+        grid.appendChild(btn);
+      });
+    }
+
+    function makePhraseButton(phrase, colour) {
+      const btn = document.createElement('button');
+      btn.className = 'phrase-btn';
+      btn.style.background = colour;
+      btn.textContent = phrase.label;
+
+      // Pre-check audio availability
+      checkAudio(phrase.audio).then(ok => {
+        if (!ok) btn.classList.add('no-audio');
+      });
+
+      btn.addEventListener('click', () => playAudio(phrase.audio, btn));
+      return btn;
+    }
+
+    // Check whether an audio file exists (HEAD request)
+    async function checkAudio(src) {
+      try {
+        const resp = await fetch(src, { method: 'HEAD' });
+        return resp.ok;
+      } catch {
+        return false;
+      }
+    }
+
+    // ============================================================
+    // Always-bar wiring
+    // ============================================================
+    function wireAlwaysBar() {
+      const alwaysVisible = data.always_visible || [];
+
+      const franscisca = alwaysVisible.find(p => p.id === 'roep_franscisca');
+      const noodgeval  = alwaysVisible.find(p => p.id === 'noodgeval');
+
+      if (franscisca) {
+        document.getElementById('btn-franscisca')
+          .addEventListener('click', (e) => playAudio(franscisca.audio, e.currentTarget));
+      }
+      if (noodgeval) {
+        document.getElementById('btn-noodgeval')
+          .addEventListener('click', (e) => playAudio(noodgeval.audio, e.currentTarget));
+      }
+    }
+
+    // ============================================================
+    // Navigation buttons
+    // ============================================================
+    document.getElementById('btn-terug').addEventListener('click', showHome);
+    document.getElementById('btn-tuis').addEventListener('click', showHome);
+    document.getElementById('btn-terug-secondary').addEventListener('click', () => {
+      document.getElementById('secondary-screen').classList.add('hidden');
+      document.getElementById('phrase-screen').classList.remove('hidden');
+    });
+    document.getElementById('btn-tuis-secondary').addEventListener('click', showHome);
+
+    // ============================================================
+    // Boot
+    // ============================================================
+    async function boot() {
+      try {
+        const resp = await fetch('phrases.json');
+        data = await resp.json();
+      } catch (err) {
+        document.body.innerHTML =
+          '<p style="color:#f44;padding:24px;font-size:22px">' +
+          'Kon nie phrases.json laai nie. Maak seker die bediener loop.<br>' +
+          err + '</p>';
+        return;
+      }
+
+      wireAlwaysBar();
+      buildCategoryGrid();
+      showHome();
+    }
+
+    boot();
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch((err) => {
+          console.warn('SW registration failed:', err);
+        });
+      });
+    }
+  </script>
+</body>
+</html>

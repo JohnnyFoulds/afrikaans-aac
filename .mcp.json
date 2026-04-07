@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "markdown-agents": {
+      "command": "node",
+      "args": ["/Users/johannes/code/personal/markdown-for-agents-mcp/dist/index.js"]
+    }
+  }
+}
