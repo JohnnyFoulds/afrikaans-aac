@@ -21,7 +21,7 @@ tags: [tts, espeak, wasm, afrikaans, offline, formant-synthesis, android, pwa, a
 priority: high
 
 # TRIAGE
-relevance: "eSpeak NG is the only production-quality offline TTS engine with a named Afrikaans voice ('af') that runs both as an Android system TTS engine (F-Droid APK) and as a WASM/JS module in the browser — making it the only viable Tier-2 fallback for the AAC PWA when Edge TTS is unavailable."
+relevance: "eSpeak NG is the only viable offline Afrikaans TTS fallback for the AAC PWA. The alternative neural model (UBC-NLP/Simba-TTS-afr, EMNLP 2025) was evaluated on 2026-07-25 and rejected — it mispronounces core vocabulary including 'môre' and is less intelligible than eSpeak NG's formant synthesis. eSpeak NG is robotic but phonemically correct."
 transcript_path: ""
 ---
 
