@@ -1,157 +1,86 @@
-# Neural Afrikaans TTS Experiment Results
+# Neural Afrikaans TTS Experiment — Results
 
 **Date:** 2026-07-25  
-**Machine:** dragon (RTX 3090 Ti, 24 GB VRAM, 62 GB RAM, Ubuntu 24.04)  
-**Model:** [UBC-NLP/Simba-TTS-afr](https://huggingface.co/UBC-NLP/Simba-TTS-afr) — VITS/MMS-TTS fine-tune for Afrikaans (EMNLP 2025, "Voice of a Continent")  
-**Conda env:** brainstorm-dev (Python 3.12)
+**Machine:** dragon (RTX 3090 Ti, 23 GB VRAM, PyTorch 2.6.0+cu124)  
+**Model:** UBC-NLP/Simba-TTS-afr (VITS/MMS-TTS, EMNLP 2025, 36.3M params)  
+**Branch:** feat/neural-afrikaans-tts
 
 ---
 
-## 1. CUDA verification
+## Step results
 
-CUDA is fully operational.
+| Step | Status | Notes |
+| --- | --- | --- |
+| CUDA verification | ✅ PASS | RTX 3090 Ti, 23 GB VRAM, CUDA 12.2 |
+| Dependency install | ✅ PASS | transformers 4.57.6, optimum 2.1.0, onnxruntime 1.28.0 (CPU) |
+| PyTorch inference | ✅ PASS | 5 phrases, 16 kHz WAVs, UTF-8 diacritics handled |
+| ONNX export | ✅ PASS | 109 MB model.onnx; tolerance warning expected for VITS stochastic sampling |
+| ONNX inference | ✅ PASS | onnxruntime InferenceSession; ORTModelForTextToWaveform not in optimum 2.1.0 |
 
-- PyTorch: 2.6.0+cu124
-- GPU: NVIDIA GeForce RTX 3090 Ti
-- VRAM: 23 GB detected
-- CUDA available: True
+## Installed packages
 
----
-
-## 2. Inference quality test (PyTorch safetensors)
-
-**Result: SUCCESS**
-
-All 5 Afrikaans test phrases synthesised successfully at 16,000 Hz sample rate.
-
-| Phrase | Duration | File size |
-|--------|----------|-----------|
-| "Goeie môre, hoe gaan dit met jou?" | 2.5s | 159 KB |
-| "Ek wil graag water hê." | 1.8s | 111 KB |
-| "Dankie vir jou hulp." | 1.7s | 110 KB |
-| "Ek is honger." | 1.1s | 69 KB |
-| "Bel asseblief die dokter." | 2.4s | 149 KB |
-
-Audio quality: WAV files are committed to the repo for listening. The model produces
-clear, natural-sounding Afrikaans speech. UTF-8 characters (ô, ê) tokenise correctly.
-
-Inference ran on CPU (model not explicitly moved to GPU — VITS is fast enough on CPU
-for single-phrase synthesis). No errors. Sampling rate: 16,000 Hz (standard for MMS
-models).
-
----
-
-## 3. ONNX export
-
-**Result: SUCCESS with expected tolerance warning**
-
-Command used:
 ```
-python -m optimum.exporters.onnx \
-  --model UBC-NLP/Simba-TTS-afr \
-  --task text-to-speech \
-  experiments/neural-tts/simba-tts-afr-onnx/
+transformers==4.57.6
+optimum==2.1.0
+onnxruntime==1.28.0   # CPU build; onnxruntime-gpu 1.27.0 requires CUDA 13, dragon has 12.2
+onnx==1.22.0
+scipy==1.18.0
+soundfile==0.14.0
+accelerate==1.14.0
 ```
 
-Output:
-```
-experiments/neural-tts/simba-tts-afr-onnx/
-  model.onnx          109 MB
-  config.json         2.0 KB
-  tokenizer_config.json  700 B
-  vocab.json          456 B
-  special_tokens_map.json  275 B
-  added_tokens.json   18 B
-```
+---
 
-**ONNX model size: 109 MB** — right at GitHub's 100 MB file size limit. The file is
-excluded from git via `.gitignore` (see below), but is available on dragon at
-`/data/code/afrikaans-aac/experiments/neural-tts/simba-tts-afr-onnx/model.onnx`.
+## Audio quality assessment
 
-**Tolerance warning** (expected, not a blocker):
-The export completed with a numerical precision warning:
-- waveform: max diff = 0.637 (atol: 1e-05)
-- spectrogram: max diff = 14.79 (atol: 1e-05)
+**Verdict: NOT SUITABLE for production use.**
 
-This is normal for VITS/flow-matching TTS models because they use stochastic sampling
-(the VITS prior sampling step has inherent randomness). The ONNX model still produces
-valid, listenable audio.
+Samples were played back on the target device and evaluated against Edge TTS `af-ZA-WillemNeural`.
 
-**Dependency issue encountered and resolved:**
-The initial install used `onnxruntime-gpu 1.27.0`, which requires CUDA 13 (libcudart.so.13),
-but dragon has CUDA 12.2. Replaced with `onnxruntime 1.28.0` (CPU). ONNX export for
-browser deployment does not require GPU-accelerated inference.
+Key finding: the model mispronounces core Afrikaans vocabulary, including basic words like
+"môre" — a word that would appear in the very first phrase any AAC user would say. The
+prosodic quality is also poor: flat intonation, unnatural rhythm, and a non-native-sounding
+accent throughout. Varying `noise_scale` (0.1–0.667), `noise_scale_duration` (0.3–0.8), and
+`speaking_rate` (0.9–1.0) produced no meaningful improvement — the problems are in the
+model weights, not the inference parameters.
+
+**Root cause:** The NCHLT Afrikaans corpus (~56 hours, ~200 speakers) used to train this model
+is read speech recorded under lab conditions. It is too narrow and too small to produce a
+natural-sounding voice. The SimbaBench paper (EMNLP 2025) optimises for ASR/TTS benchmarks
+across 7 African languages simultaneously; per-language quality is sacrificed for breadth.
+
+**Comparison with Edge TTS af-ZA-WillemNeural:** not in the same league. Willem is a production
+neural voice trained on far more data with professional recording quality.
+
+**Comparison with eSpeak NG af (formant):** Simba is marginally less robotic in timbre but
+worse in intelligibility for Afrikaans-specific phonemes. eSpeak at least pronounces "môre"
+correctly. For a communication device, intelligibility > naturalness.
 
 ---
 
-## 4. ONNX inference
+## Architecture recommendation
 
-**Result: SUCCESS**
+The phonemizer-only WASM path (`wide-video/espeakng-wasm`) that motivated this experiment
+is NOT currently useful for Afrikaans: no neural Afrikaans TTS model exists that is good
+enough to pair with it at acceptable quality.
 
-`ORTModelForTextToWaveform` is not available in optimum 2.1.0 (it was added in a
-later release). Used `onnxruntime.InferenceSession` directly instead.
+**Revised Tier-2 recommendation:** eSpeak NG (`steveseguin/espeakng.js`, 3.3 MB WASM) remains
+the only viable offline fallback. Robotic but intelligible and correct. The Phase 1 decision
+to defer Tier-2 entirely and use visual text fallback remains defensible given the quality gap.
 
-Inputs: `input_ids` (int64), `attention_mask` (int64)  
-Outputs: `waveform` (float32, shape [1, T]), `spectrogram` (float32)
-
-Test phrase: "Goeie môre, hoe gaan dit?" → 2.0s, 127 KB WAV, confirmed listenable.
-
----
-
-## 5. Browser/transformers.js packaging assessment
-
-**Not attempted in this experiment, but feasible.**
-
-The Hydramus/Simba-TTS-tsn-onnx precedent (Setswana sibling model, ~109 MB) confirms
-the exact same pipeline works for `@huggingface/transformers` browser deployment.
-
-Steps needed to publish `Hydramus/Simba-TTS-afr-onnx` equivalent:
-1. Quantise the ONNX to FP16 or INT8 to reduce from 109 MB → ~55–70 MB (recommended
-   for browser transfer). Use `onnxmltools` or `onnxruntime.quantization`.
-2. Add `transformers.js`-compatible metadata (`onnx/` directory layout, `preprocessor_config.json`).
-3. Publish to HuggingFace Hub as a community model.
-
-The 109 MB unquantised ONNX is already within GitHub LFS range and within what
-`@huggingface/transformers` can load from Hub (no hard size cap, but 50-70 MB is
-practical for mobile users).
+**Conditions under which this changes:**
+1. A higher-quality Afrikaans TTS dataset is recorded and released (none known as of 2026-07-25)
+2. Someone fine-tunes Simba or a similar VITS model on that data
+3. Edge TTS adds an offline/on-device deployment path for WillemNeural
 
 ---
 
-## 6. Unexpected findings
+## Files
 
-- `transformers 4.57.6` (installed) produces a deprecation warning: `torch_dtype` →
-  use `dtype`. This is a non-breaking warning in the transformers API.
-- Model downloads to `~/.cache/huggingface/hub/` on first run (~145 MB safetensors).
-  Subsequent runs are instant.
-- The VITS stochastic sampling means each inference run produces slightly different
-  audio (different noise seed), which is intentional model behaviour.
-
----
-
-## 7. Package versions
-
-| Package | Version |
-|---------|---------|
-| torch | 2.6.0+cu124 |
-| transformers | 4.57.6 |
-| optimum | 2.1.0 |
-| onnxruntime | 1.28.0 (CPU) |
-| onnx | 1.22.0 |
-| scipy | 1.18.0 |
-| soundfile | 0.14.0 |
-| accelerate | 1.14.0 |
-
----
-
-## 8. Conclusion
-
-**The UBC-NLP/Simba-TTS-afr model is fully operational on dragon and ONNX-exportable.**
-
-Key findings:
-- Neural Afrikaans TTS inference works end-to-end with high quality output
-- ONNX export succeeds (109 MB model)
-- ONNX inference via raw onnxruntime works correctly
-- The path to browser-side deployment via `@huggingface/transformers` is clear, modelled
-  on the existing Setswana (tsn) community ONNX package
-- Recommended next step: quantise to FP16/INT8 to reduce model size for browser use,
-  then publish as a HuggingFace community model
+| File | Description |
+| --- | --- |
+| `inference_test.py` | PyTorch inference script (5 test phrases) |
+| `*.wav` | PyTorch inference outputs (committed) |
+| `best_*.wav` | Parameter sweep outputs (noise_scale / speaking_rate variants) |
+| `onnx_test.wav` | ONNX inference output |
+| `simba-tts-afr-onnx/` | ONNX export directory (model.onnx gitignored, configs committed) |
