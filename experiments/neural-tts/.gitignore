@@ -1,0 +1,7 @@
+# Exclude large ONNX model files (>50 MB, GitHub rejects >100 MB)
+# The model.onnx (109 MB) is available on dragon at:
+# /data/code/afrikaans-aac/experiments/neural-tts/simba-tts-afr-onnx/model.onnx
+simba-tts-afr-onnx/model.onnx
+
+# Exclude HuggingFace model cache
+~/.cache/huggingface/
