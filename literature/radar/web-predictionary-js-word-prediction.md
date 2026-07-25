@@ -91,11 +91,61 @@ Primary source: GitHub repository `asterics/predictionary` and npm package page.
 
 #### Step 1 — Get Afrikaans corpus (on dragon)
 
+Three sources, in order of preference:
+
+**Option A — Afrikaans Bible corpus** (already downloaded — use this first)
+
+Two translations are available locally at `data/corpora/` in the AAC repo,
+extracted from the [Beblia/Holy-Bible-XML-Format](https://github.com/Beblia/Holy-Bible-XML-Format)
+GitHub repo ("use at your own discretion"):
+
+| File | Translation | Verses | Tokens |
+| --- | --- | --- | --- |
+| `afr53_corpus.txt` | AFR53 — Ou Vertaling 1933/1953 (formal, traditional Afrikaans) | 31 459 | ~810 k |
+| `nlv_corpus.txt` | NLV — Nuwe Lewende Vertaling 2011 (contemporary, dynamic-equivalence) | 31 168 | ~774 k |
+| `afrikaans_bible_combined.txt` | Both combined and deduplicated | 61 724 | ~1.57 M |
+
+The AFR53 is the register the user grew up with; the NLV adds contemporary vocabulary.
+Together they provide ~1.57 M tokens of clean, structured Afrikaans — enough for a
+meaningful word-frequency list and bigram model.
+
 ```bash
-# NCHLT Afrikaans text corpus (North-West University / SADiLaR)
-# Available at: https://repo.sadilar.org/items/2bf723bc-7420-439e-a55d-833e10b0c776
-# Or GoVZA government text (crawled af.gov.za content)
-# Or user utterance log exported from the app's IndexedDB
+# Already on this machine — just point text2ngram at it:
+text2ngram -n 1 -o af_1gram.db -f sqlite -l data/corpora/afrikaans_bible_combined.txt
+text2ngram -n 2 -o af_2gram.db -f sqlite -l data/corpora/afrikaans_bible_combined.txt
+```
+
+> **Note on the speech corpus URL:** `https://repo.sadilar.org/items/2bf723bc-7420-439e-a55d-833e10b0c776`
+> is the NCHLT Afrikaans *Speech* Corpus — a 4.51 GB audio archive, not text.
+> Do not use it for this pipeline.
+
+**Option B — Leipzig Corpora Collection** (Afrikaans, ~5M sentences, web-crawled)
+
+```bash
+# https://wortschatz-leipzig.de/en/download/Afrikaans
+# Download the 1M or 300K sentence version; use the *-sentences.txt file
+```
+
+**Option C — OSCAR / CC-100** (Common Crawl Afrikaans subset, HuggingFace)
+
+```bash
+# OSCAR 2201 Afrikaans via HuggingFace datasets:
+pip install datasets
+python3 -c "
+from datasets import load_dataset
+ds = load_dataset('oscar-corpus/OSCAR-2201', 'af', split='train', streaming=True)
+with open('corpus.txt', 'w') as f:
+    for i, ex in enumerate(ds):
+        f.write(ex['text'] + '\n')
+        if i > 500000: break
+"
+```
+
+**Option D — user utterance log** (personalized cold-start, post-deployment)
+
+```bash
+# Export from app's IndexedDB via browser DevTools → Application → IndexedDB
+# or via a dedicated export button in the PWA settings
 ```
 
 #### Step 2 — Install presage (on dragon, Ubuntu 24.04)
